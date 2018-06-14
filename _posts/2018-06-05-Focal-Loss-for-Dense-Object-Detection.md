@@ -3,20 +3,18 @@ layout: post
 title:  "Focal Loss for Dense Object Detection"
 categories: ObjectDetection
 tags:  ObjectDetection FocalLoss
-author: ChangQ
+author: CQ
 ---
 
 * content
 {:toc}
 
-关于写倒计时大家可能都都比较熟悉，使用 setTimeout 或 setInterval 就可以搞定。几秒钟或者几分钟的倒计时这样写没有问题，但是如果是长时间的倒计时，这样写就会不准确。如果用户修改了他的设备时间，这样的倒计时就没有意义了。今天就说说写一个精确的倒计时的方法。
-
-
-
-
 ## 摘要：
 
 　　至今最高准确度的目标检测器基于由R-CNN普及的两阶段方法，即在少量候选目标位置后应用一个分类器。与之相对，用于可能目标位置的规律且密集抽样的单阶段检测器有更快且更简单的潜力，但至今为止，在准确度上落后于两阶段检测器。本文中，我们研究了为什么是这种情况。我们发现，在训练密集检测器时遇到的极端前景－背景类别失衡，是核心的原因。我们计划通过改变标准交叉熵损失，使其减少正确分类样本的损失。我们全新的“Focal Loss”聚焦于在少量牢固样本上进行训练，防止训练过程中检测器被大量廉价负样本所淹没。为了检测损失的有效性，我们训练了一个密集检测器样本，叫RetinaNet。结果显示，使用“Focal Loss”时，RetinaNet与以前的单阶段检测器速度相当，同时在准确度上超越所有至今为止最新水平的两阶段检测器。代码链接: [https://github.com/facebookresearch/Detectron](https://github.com/facebookresearch/Detectron)。  
+
+
+
 
 ## 1.简介
 
