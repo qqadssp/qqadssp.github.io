@@ -258,6 +258,6 @@ $$
 表3. 对于选定设置，FL和FL*的结果 versus CE的结果
 
 ![](/assets/Focal_Loss_for_Dense_Object_Detection/Figure_7.png)
-图7. 不同$gamma$和$beta$设置FL*的有效性。图像以颜色区分，有效设置用蓝色显示
+图7. 不同$\gamma$和$\beta$设置FL*的有效性。图像以颜色区分，有效设置用蓝色显示
 
 ## 参考文献：
