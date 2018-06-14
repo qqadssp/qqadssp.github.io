@@ -184,6 +184,9 @@ $$
 
 **Hinge Loss：** 最后，在早期实验中，我们尝试用$p_t$上的Hinge Loss进行训练，即对于一个特定$p_t$值以上的损失设为0。然而，这不稳定，我们也没能达成有意义的结果。探索替代损失函数的结果在附录。  
 
+![](/assets/Focal_Loss_for_Dense_Object_Detection/Table_2.png)
+表2. 目标检测。单一模型结果(边界框AP得分) vs COCO test-dev上最新水平。我们展示了RetinaNet-101-800模型的结果，使用尺度振动进行训练，比表1相同模型长1.5倍训练时间。我们的模型获得最好的结果，超过单阶段和双阶段模型。对于速度versus准确度的详细细节见表1e和图2。
+
 ### 5.2 模型架构
 
 **Anchor密度：** 单阶段检测系统一个最重要的因素是它覆盖的可能图像框有多密集。使用区域池化操作，两阶段检测器可以分类任意位置、尺寸和长宽比的图像框。相反，由于单阶段检测器使用一个固定抽样网格，一个流行的方法，为了在这些方法中达到高边界框收敛，是在每个空间位置使用multiple anchors，覆盖各种尺寸和长宽比的边界框。  
@@ -245,3 +248,16 @@ $$
 
 选定设置的图示如图6。对所有损失函数，梯度对于高可信度样本趋于-1或0。然而，不像CE，对于FL和FL*的有效设置，只要$x_t\gt0$梯度就变得很小。
 
+![](/assets/Focal_Loss_for_Dense_Object_Detection/Figure_5.png)
+图5. $x_t=yx$变换后Focal Loss变体与cross entropy的比较。原始FL和替代变体FL*都降低了正确分类样本相关的损失($x_t\gt0$)  
+
+![](/assets/Focal_Loss_for_Dense_Object_Detection/Figure_6.png)
+图6. 图5中损失函数对x的导数
+
+![](/assets/Focal_Loss_for_Dense_Object_Detection/Table_3.png)
+表3. 对于选定设置，FL和FL*的结果 versus CE的结果
+
+![](/assets/Focal_Loss_for_Dense_Object_Detection/Figure_7.png)
+图7. 不同$gamma$和$beta$设置FL*的有效性。图像以颜色区分，有效设置用蓝色显示
+
+## 参考文献：
