@@ -9,11 +9,11 @@ author: CQ
 * content
 {:toc}
 
-Intro: ICCV 2017 best student paper  
+**Intro:** ICCV 2017 best student paper  
 
-Link: [https://arxiv.org/abs/1708.02002](https://arxiv.org/abs/1708.02002)  
+**Link:** [https://arxiv.org/abs/1708.02002](https://arxiv.org/abs/1708.02002)  
 
-Code: [https://github.com/facebookresearch/Detectron](https://github.com/facebookresearch/Detectron)  
+**Code:** [https://github.com/facebookresearch/Detectron](https://github.com/facebookresearch/Detectron)  
 
 
 
