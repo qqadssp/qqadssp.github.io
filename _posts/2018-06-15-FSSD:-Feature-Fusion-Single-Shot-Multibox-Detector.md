@@ -56,9 +56,9 @@ SSD是另一个高效的单阶段检测器。如图2a所示，SSD通过两个3×
 　　如第2节所述，已经有很多算法尝试观察并充分利用pyramidal features。最常见的方法类似图1c。这种类型的特征融合用于FPN和DSSD中，已被证明对卷积检测器改进很多。但这需要多个特征合并过程。如图1c所示，右侧的新特征只能融合来自左侧对应层特征和较高层的特征。另外，隐藏特征和多特征元素间操作也耗费了大量时间。我们提出一个轻量且高效的特征融合模块来解决这个任务。我们的动机是以合适的方式一次融合不同层特征，然后从融合的特征中生成feature pyramid。当考虑特征融合模块时有几个因素需要考虑。我们将在下节研究他们。设$X_i, i\in C$是我们想要融合的源feature maps，特征融合模块可以如下描述：  
 
 $$
-X_f　=　\phi_f　\lbrace　\Gamma_i　(X_i)　\rbrace i\in C
-X_p^'=\phi_p(X_f) p\in P
-loc,loss=\phi_{c,l}(\cup \lbrace X_p^' \rbrace)
+X_f　=　\phi_f　\lbrace　\Gamma_i　(X_i)　\rbrace
+X_p=\phi_p(X_f)
+loc,loss=\phi_{c,l}(\cup \lbrace X_p \rbrace)
 $$
 
 此处$\Gamma_i$意为在串联在一起前每一个源feature map的变换函数。$\phi_f$为特征融合函数。$\phi_p$是生成pyramid features的函数。$\phi_{c,l}$是从提供的feature maps预测目标检测的方法。我们将注意力集中在是否应该被融合的层($C$)的范围、如何融合选定的feature maps($\Gamma$和$\phi_f$)，以及如何生成pyramid features($\phi_p$)。
