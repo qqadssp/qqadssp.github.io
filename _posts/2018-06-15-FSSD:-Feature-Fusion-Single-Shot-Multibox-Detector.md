@@ -35,7 +35,7 @@ author: CQ
 
 
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Figure_1.png)
-图1. (a)特征由不同尺度图片单独计算，这是低效的方式。(b)只有一个尺寸特征用来检测物体，用在一些两阶段检测器如Faster R-CNN和R-FCN中。(3)[19, 25]采用的特征融合方法，特征从上到下一层一层融合。(4)使用卷积网络生成的feature pyramid，传统SSD是例子之一。(e)我们提出的特征融合和生成feature pyramid方法。来自不同层不同尺寸的特征首先串联在一起，然后用来生成一系列pyramid feature层。
+图1. (a)特征由不同尺度图片单独计算，这是低效的方式。(b)只有一个尺寸特征用来检测物体，用在一些两阶段检测器如Faster R-CNN和R-FCN中。(3)[19, 25]采用的特征融合方法，特征从上到下一层一层融合。(4)使用卷积网络生成的feature pyramid，传统SSD是例子之一。(e)我们提出的特征融合和生成feature pyramid方法。来自不同层不同尺寸的特征首先串联在一起，然后用来生成一系列pyramid feature层。  
 
 ## 2.相关工作
 
@@ -119,20 +119,22 @@ $\phi_p$：采用自传统SSD，我们使用pyramid feature map生成目标检�
 **PASCAL VOC2012上的结果：**我们用VOC 2012 trainval、VOC 2007 trainval和MS COCO进行训练，在VOC2012 test上测试。训练超参数与VOC2007上的实验相同，除了数据集。表4从PASCAL VOC2012排行榜上总结了一些最新水平检测器。以COCO训练的FSSD300能达到82.0%的mAP，比传统SSD(79.3%)高2.7分。另外，FSSD512能达到84.2%的mAP，超过传统SSD(82.2%)2分。截止提交时，FSSD512在VOC2012排行榜上在所有单阶段目标检测器中获得第一的位置。  
 
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_2.png)
-表2. PASCAL VOC2007上简化模型实验的结果。BN意为在特征串联后增加batch normalization层。pre-trained VGG意为采用预训练VGG16初始化模型。pre-trained SSD意为FSSD从一个训练好的SSD模型开始优化。我们能融合的层选项包括conv3_3，conv4_3，fc7_3，conv7_2。fusion layers代表我们选择合并的层。mAP在VOC2007 test上测量。
+表2. PASCAL VOC2007上简化模型实验的结果。BN意为在特征串联后增加batch normalization层。pre-trained VGG意为采用预训练VGG16初始化模型。pre-trained SSD意为FSSD从一个训练好的SSD模型开始优化。我们能融合的层选项包括conv3_3，conv4_3，fc7_3，conv7_2。fusion layers代表我们选择合并的层。mAP在VOC2007 test上测量。  
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_3.png)
-表3. PASCAL VOC2007 test检测结果。我们在这里列出的SSD结果是原作者在更多数据扩充的文章发布后更新的版本。SSD300*表示从原始VGGNet训练SSD300，原始VGGNet以DSOD测量。FSSD*也从原始VGGNet开始训练。FSSD们的速度在单块Nvidia 1080Ti GPU上测试。为了公平对比，我们也在单块Nvidia 1080Ti GPU上测试SSD的速度。
+表3. PASCAL VOC2007 test检测结果。我们在这里列出的SSD结果是原作者在更多数据扩充的文章发布后更新的版本。SSD300*表示从原始VGGNet训练SSD300，原始VGGNet以DSOD测量。FSSD*也从原始VGGNet开始训练。FSSD们的速度在单块Nvidia 1080Ti GPU上测试。为了公平对比，我们也在单块Nvidia 1080Ti GPU上测试SSD的速度。  
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_4.png)
-表4. PASCAL VOC2012 test检测结果。07++12+COCO：07 trainval + 07 test + 12 trainval + MSCOCO。07++12+S+COCO：07++12加上分割标签和MSCOCO。结果链接为FSSD300(07++12+COCO)：http://host.robots.ox.ac.uk:8080/anonymous/YMAA3TZ.html；FSSD512(07++12+COCO)：http://host.robots.ox.ac.uk:8080/anonymous/LQXCQK.html。
+表4. PASCAL VOC2012 test检测结果。07++12+COCO：07 trainval + 07 test + 12 trainval + MSCOCO。07++12+S+COCO：07++12加上分割标签和MSCOCO。结果链接为  
+FSSD300(07++12+COCO)：[http://host.robots.ox.ac.uk:8080/anonymous/YMAA3TZ.html](http://host.robots.ox.ac.uk:8080/anonymous/YAA3TZ.html)；  
+FSSD512(07++12+COCO)：[http://host.robots.ox.ac.uk:8080/anonymous/LQXCQK.html](http://host.robots.ox.ac.uk:8080/anonymous/LQXCQK.html)。  
 
 **MS COCO上的结果：**MS COCO有80目标类别。我们使用COCO2017挑战赛数据来准备数据集。训练集包含115,000图片，可以比得上原trainval135。对于训练FSSD300，学习率对于开始280,000迭代步设为0.001，在360,000步和400,000步时分别除以10。但如果从一个训练好的SSD模型开始训练FSSD300，只需要总共120,000步就可以使FSSD300收敛好。对于训练FSSD512，学习率对于开始280,000迭代步设为0.001，在320,000和360,000步时分别除以10。  
 
 　　表5中显示COCO测试结果。FSSD300在test-dev上获得27.1%，以大的差距高于SSD300(25.1%)。尽管如此，FSSD表现不如DSOD和DSSD，应该注记我们的模型是VGG16，并且FSSD相比其他VGGNet模型算法，如表5中的Faster RCNN和ION(第1和2行)，有最好的准确度。另外，FSSD512(31.8%)超过传统SSD(28.8%)3分。尽管FSSD512稍慢于DSSD513，应当注记FSSD在小目标的mAP仍高于DSSD513，证明特征融合模块比DSSD的FPN模块在小目标检测上更强力。  
 
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_5.png)
-表5. MSCOCO test-dev 2015检测结果
+表5. MSCOCO test-dev 2015检测结果  
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_6.png)
-表6. 不同轻量检测器在MSCOCO minival2014上的mAP。
+表6. 不同轻量检测器在MSCOCO minival2014上的mAP。  
 
 ### 4.4 含有特征融合模块的轻量目标检测器
 
@@ -153,6 +155,6 @@ $\phi_p$：采用自传统SSD，我们使用pyramid feature map生成目标检�
 　　将来，值得用更强大的主干网络如ResNet和DenseNet加强FSSD，在MS COCO上得到更好的性能，在Mask RCNN中用我们的特征融合模块替代FPN也是一个有趣的研究领域。  
 
 ![](/assets/FSSD_Feature_Fusion_Singel_Shot_Multibox_Detector/Figure_6.png)
-图6. SSD vs FSSD。两个模型都用VOC07+12训练。上面行包含传统SSD检测结果，底部行来自FSSD300模型。得分0.5或更高的边界框被画出。展示出来效果较好。
+图6. SSD vs FSSD。两个模型都用VOC07+12训练。上面行包含传统SSD检测结果，底部行来自FSSD300模型。得分0.5或更高的边界框被画出。展示出来效果较好。  
 
 ## 参考文献：
