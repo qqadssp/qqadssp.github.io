@@ -25,11 +25,14 @@ author: CQ
 ## 1.简介
 
 　　目标检测是计算机视觉的核心任务之一。近几年来，很多基于卷积网络的检测器被提出，用来改善目标检测任务的准确度和速度。但目标检测中的尺度变化对所有检测器来说仍然是决定性的挑战。如图1，有一些方法被提出用来解决多尺度目标检测问题。图1a将卷积网络用于不同尺度图像生成不同尺度的feature maps，这是相当低效的方式。图1b只选择一个尺度的feature map，但生成不同尺度的anchors来检测不同尺度的目标。Faster RCNN, RFCN等等算法采取这种方法。但固定的感受域尺寸对于检测太大或太小的目标是一个限制。如图1c的top-down结构最近很流行，且已经证明在FPN、DSSD和SharpMask中表现很好。但逐个层融合特征不够高效，因为有很多层需要联合在一起。
-　　基于卷积网络的目标检测器的主要权衡是目标识别和定位之间的矛盾。更深的卷积网络，feature maps可以代表更多的平移不变的语义信息，这有益于目标识别，但不利于目标定位。为了解决这个问题，SSD采用feature pyramid来检测不同尺度的目标。对于用VGG16作为主干的网络，特征步长8的Conv4_3用来检测小目标，特征步长64的Conv8_2用来检测大目标。这个策略是合理的，因为小目标在浅层不会丢失太多位置信息，大目标也可以在深层被很好的定位和识别。问题是，浅层网络产生的小目标的特征缺失足够的语义信息，这将导致小目标检测上的不佳表现。另外，小目标也严重依赖背景信息。图6第一行显示了一些SSD的对小目标的检测缺失。本文中，为了处理前述提及的问题，我们提出Feature Fusion SSD(FSSD)，在传统SSD上增加一个轻量且高效的特征融合模块。我们首先定义特征融合模块的框架，摘录在目标检测上特征融合性能的有决定效果的因素。根据第3节和第4节中的理论分析和实验结果，特征融合模块的架构定义如下：来自不同层的不同尺度的Feature被投影然后串联在一起，后跟一个Batch Normalization层归一化feature values。然后我们增加一些降采样模块生成新的feature pyramid，送给multibox detectors产生最后的检测结果。使用上述架构，我们的FSSD相比传统SSD改进很大的性能，只有一点速度开销。我们在PASCAL VOC数据集和MS COCO数据集上评测FSSD。结果显示FSSD可以以很大幅度改进传统SSD，尤其对于小目标，不用任何附加说明。另外，基于VGG网络FSSD也超过很多最新水平检测器，包括ION和Faster RCNN。特征融合模块在目标检测任务中也比FPN效果好。我们的主要贡献总结如下：
+　　基于卷积网络的目标检测器的主要权衡是目标识别和定位之间的矛盾。更深的卷积网络，feature maps可以代表更多的平移不变的语义信息，这有益于目标识别，但不利于目标定位。为了解决这个问题，SSD采用feature pyramid来检测不同尺度的目标。对于用VGG16作为主干的网络，特征步长8的Conv4_3用来检测小目标，特征步长64的Conv8_2用来检测大目标。这个策略是合理的，因为小目标在浅层不会丢失太多位置信息，大目标也可以在深层被很好的定位和识别。问题是，浅层网络产生的小目标的特征缺失足够的语义信息，这将导致小目标检测上的不佳表现。另外，小目标也严重依赖背景信息。图6第一行显示了一些SSD的对小目标的检测缺失。本文中，为了处理前述提及的问题，我们提出Feature Fusion SSD(FSSD)，在传统SSD上增加一个轻量且高效的特征融合模块。我们首先定义特征融合模块的框架，摘录在目标检测上特征融合性能的有决定效果的因素。根据第3节和第4节中的理论分析和实验结果，特征融合模块的架构定义如下：来自不同层的不同尺度的Feature被投影然后串联在一起，后跟一个Batch Normalization层归一化feature values。然后我们增加一些降采样模块生成新的feature pyramid，送给multibox detectors产生最后的检测结果。
+使用上述架构，我们的FSSD相比传统SSD改进很大的性能，只有一点速度开销。我们在PASCAL VOC数据集和MS COCO数据集上评测FSSD。结果显示FSSD可以以很大幅度改进传统SSD，尤其对于小目标，不用任何附加说明。另外，基于VGG网络FSSD也超过很多最新水平检测器，包括ION和Faster RCNN。特征融合模块在目标检测任务中也比FPN效果好。我们的主要贡献总结如下：
 (1) 我们定义特征融合框架并研究不同的因素来确定特征融合模块。
 (2) 我们引入一个全新的轻量的联合来自不同层feature maps的方法。
 (3) 在大量高质量实验后，我们证明FSSD对传统SSD有显著的改善，只有一点点速度降低。FSSD可以在PASCAL VOC数据集和MS COCO数据集上获得最新水平表现。
 
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Figure_1.png)
+图1. (a)特征由不同尺度图片单独计算，这是低效的方式。(b)只有一个尺寸特征用来检测物体，用在一些两阶段检测器如Faster R-CNN和R-FCN中。(3)[19, 25]采用的特征融合方法，特征从上到下一层一层融合。(4)使用卷积网络生成的feature pyramid，传统SSD是例子之一。(e)我们提出的特征融合和生成feature pyramid方法。来自不同层不同尺寸的特征首先串联在一起，然后用来生成一系列pyramid feature层。
 ## 2.相关工作
 
 **基于卷积网络的目标检测器：** 得益于深度卷积网络的力量，目标检测器如OverFeat和R-CNN开始显示出令人瞩目的准确度改进。OverFeat在image pyramid上滑动窗口中，将卷积网络用作为特征提取器。R-CNN使用selective search或Edge boxes产生的region proposals，通过预训练的卷积网络生成regin-based feature，采用SVM进行分类。SPPNet采用spatial pyramid pooling layer，允许分类模块重新利用卷积特征而不管输入图像分辨率。Fast R-CNN用分类和位置回归损失end to end的训练卷积网络。Faster R-CNN将selective search替换为regin proposal network(RPN)。RPN从来产生候选边界框(anchor boxes)同时滤除背景区域。然后另一个小网络用来分类和边界框回归，基于这些候选区。R-FCN用position sensitive ROI pooling(PSROI)替换Faster RCNN中的ROI poolling，来改进检测器准确度和速度两方面的质量。最近，Deformable Convolution Netword提出可变性卷积和可变形PSROI来进一步加强FRCN得到更高的准确度。
@@ -57,6 +60,15 @@ $C$：在传统的基于VGG16的SSD300中，其作者选择VGG16的conv4_3、fc_
 $\phi_f$：有两种主要的方法将不同的feature maps合并在一起：串联和元素求和。元素求和需要feature maps应该有相同的尺寸，意味着我们不得不将feature maps转换到相同的通道。由于这个要求限制了feature maps融合的灵活性，我们倾向于使用串联。另外，根据4.1.2节的结果，串联比元素求和能得到更好的结果。所以我们使用串联来组合特征。
 $\Gamma$：为了以一种简单高效的方式串联不同尺度的特征，我们采用如下策略。首先1×1卷积层作用在每个源层上来降低特征维度。然后，我们设定conv4_3的feature map尺寸作为基准feature map尺寸，也就意味着最小特征步长为8。conv3_3产生的feature maps被降采样到38×38，通过2×2步长2的最大值池化层。对于尺寸小于38×38的feature maps，我们使用双线性插值调整feature maps尺寸到与conv4_3相同。通过这中方式，所有特征在空间维度都有相同的尺寸。
 $\phi_p$：采用自传统SSD，我们使用pyramid feature map生成目标检测结果。我们测试三种不同结构，比较结果选取最好的那个。根据4.1.4节的结果，我们选择了一个由一些简单的提取feature pyramid组件组成的结构。
+
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Figure_2.png)
+图2. (a)是[21]中提出的SSD框架，(b)是我们的F-SSD框架
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Figure_3.png)
+图3. FSSD300的pyramid feature生成器。我们用灰色方块的feature maps检测目标。在(a)中，融合的feature maps参与目标检测。在(b)中，我们只在融合feature map后的feature maps上检测目标。(3)我们用包含两个Conv+Relu层的bottleneck模块替换Conv+Relu的简单组合。
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Figure_4.png)
+图4. 训练过程比较。竖轴表示在VOC2007 test集上计算的mAP，横轴代表迭代步。SSD意为从预训练VGG16模型开始以默认设置训练传统SSD模型。FSSD意为用预训练VGG16模型训练FSSD模型。FSSD的训练参数与SSD相同。FSSD+意为从预训练的SSD模型训练FSSD。FSSD+只优化60,000迭代步。所有模型在VOC07+12上训练。
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_1.png)
+表1. 使用不同pyramid feature生成结构时VOC2007 test上的mAP
 
 ### 3.2 训练
 
@@ -97,8 +109,20 @@ $\phi_p$：采用自传统SSD，我们使用pyramid feature map生成目标检�
 
 **PASCAL VOC2012上的结果** 我们用VOC 2012 trainval、VOC 2007 trainval和MS COCO进行训练，在VOC2012 test上测试。训练超参数与VOC2007上的实验相同，除了数据集。表4从PASCAL VOC2012排行榜上总结了一些最新水平检测器。以COCO训练的FSSD300能达到82.0%的mAP，比传统SSD(79.3%)高2.7分。另外，FSSD512能达到84.2%的mAP，超过传统SSD(82.2%)2分。截止提交时，FSSD512在VOC2012排行榜上在所有单阶段目标检测器中获得第一的位置。
 
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_2.png)
+表2. PASCAL VOC2007上简化模型实验的结果。BN意为在特征串联后增加batch normalization层。pre-trained VGG意为采用预训练VGG16初始化模型。pre-trained SSD意为FSSD从一个训练好的SSD模型开始优化。我们能融合的层选项包括conv3_3，conv4_3，fc7_3，conv7_2。fusion layers代表我们选择合并的层。mAP在VOC2007 test上测量。
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_3.png)
+表3. PASCAL VOC 2007 test检测结果。我们在这里列出的SSD结果是原作者在更多数据扩充的文章发布后更新的版本。SSD300*表示从原始VGGNet训练SSD300，原始VGGNet以DSOD测量。FSSD*也从原始VGGNet开始训练。FSSD们的速度在单块Nvidia 1080Ti GPU上测试。为了公平对比，我们也在单块Nvidia 1080Ti GPU上测试SSD的速度。
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_4.png)
+表4. PASCAL VOC 2012 test检测结果。07++12+COCO：07 trainval + 07 test + 12 trainval + MSCOCO。07++12+S+COCO：07++12加上分割标签和MSCOCO。结果链接为FSSD300(07++12+COCO)：http://host.robots.ox.ac.uk:8080/anonymous/YMAA3TZ.html；FSSD512(07++12+COCO)：http://host.robots.ox.ac.uk:8080/anonymous/LQXCQK.html。
+
 **MS COCO上的结果** MS COCO有80目标类别。我们使用COCO2017挑战赛数据来准备数据集。训练集包含115,000图片，可以比得上原trainval135。对于训练FSSD300，学习率对于开始280,000迭代步设为0.001，在360,000步和400,000步时分别除以10。但如果从一个训练好的SSD模型开始训练FSSD300，只需要总共120,000步就可以使FSSD300收敛好。对于训练FSSD512，学习率对于开始280,000迭代步设为0.001，在320,000和360,000步时分别除以10。
   COCO测试结果在表5中显示。FSSD300在test-dev上获得27.1%，以大的差距高于SSD300(25.1%)。尽管如此，FSSD表现不如DSOD和DSSD，应该注记我们的模型是VGG16，并且FSSD相比其他VGGNet模型算法，如表5中的Faster RCNN和ION(第1和2行)，有最好的准确度。另外，FSSD512(31.8%)超过传统SSD(28.8%)3分。尽管FSSD512稍慢于DSSD513，应当注记FSSD在小目标的mAP仍高于DSSD513，证明特征融合模块比DSSD的FPN模块在小目标检测上更强力。
+
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_5.png)
+表5. MSCOCO test-dev 2015检测结果
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_6.png)
+表6. 不同轻量检测器在MSCOCO minival2014上的mAP。
 
 ### 4.4 含有特征融合模块的轻量目标检测器
 
@@ -116,5 +140,8 @@ $\phi_p$：采用自传统SSD，我们使用pyramid feature map生成目标检�
 
 　　本文中，我们提出FSSD，一个通过应用轻量高效的特征融合模块加强的SSD。首先，我们研究了将不同特征融合一起和生成pyramid feature maps的框架。实验结果显示来自不同层的feature maps可以通过串联在一起被充分利用。然后应用和一些步长2的卷积层融合feature map产生pyramid features。PASCAL VOC和MS COCO上的实验证明FSSD改进了传统SSD很多，在准确度和效率上超过一些其他最新水平目标检测器，无需附加。
   将来，值得用更强大的主干网络如ResNet和DenseNet加强FSSD，在MS COCO上得到更好的性能，在Mask RCNN中用我们的特征融合模块替代FPN也是一个有趣的研究领域。
+
+![](/assets/FSSD_Feature_Fusion_Singel_Shot_Multibox_Detector/Figure_6.png)
+图6. SSD vs FSSD。两个模型都用VOC07+12训练。上面行包含传统SSD检测结果，底部行来自FSSD300模型。得分0.5或更高的边界框被画出。展示出来效果较好。
 
 ## 参考文献：
