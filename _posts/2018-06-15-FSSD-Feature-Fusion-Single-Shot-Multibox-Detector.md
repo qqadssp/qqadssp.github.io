@@ -135,6 +135,8 @@ FSSD512(07++12+COCO)：[http://host.robots.ox.ac.uk:8080/anonymous/LQXCQK.html](
 表5. MSCOCO test-dev 2015检测结果  
 ![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detector/Table_6.png)
 表6. 不同轻量检测器在MSCOCO minival2014上的mAP。  
+![](/assets/FSSD_Feature_Fusion_Single_Shot_Multibox_Detectior/Figure_5.png)
+图5. 不同目标检测算法的速度和准确度分布。速度都在一个单块TitanX GPU上测量。由于我们没有TitanX GPU，FSSD的速度通过与Nvidia 1080Ti上测试的SSD速度对比计算得出。
 
 ### 4.4 含有特征融合模块的轻量目标检测器
 
@@ -154,7 +156,7 @@ FSSD512(07++12+COCO)：[http://host.robots.ox.ac.uk:8080/anonymous/LQXCQK.html](
 
 　　将来，值得用更强大的主干网络如ResNet和DenseNet加强FSSD，在MS COCO上得到更好的性能，在Mask RCNN中用我们的特征融合模块替代FPN也是一个有趣的研究领域。  
 
-![](/assets/FSSD_Feature_Fusion_Singel_Shot_Multibox_Detector/Figure_6.png)
+![](/assets/FSSD_Feature_Fusion_Singel_Shot_Multibox_Detector/Figure_5.png)
 图6. SSD vs FSSD。两个模型都用VOC07+12训练。上面行包含传统SSD检测结果，底部行来自FSSD300模型。得分0.5或更高的边界框被画出。展示出来效果较好。  
 
 ## 参考文献：
