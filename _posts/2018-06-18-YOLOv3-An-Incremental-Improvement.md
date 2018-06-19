@@ -43,7 +43,7 @@ author: CQ
 $$
 b_x=\sigma(t_x)+c_x \\
 b_y=\sigma(t_y)+c_y \\
-b_w=p_wexp(t_w)
+b_w=p_wexp(t_w) \\
 b_h=p_hexp(t_h)
 $$
 
