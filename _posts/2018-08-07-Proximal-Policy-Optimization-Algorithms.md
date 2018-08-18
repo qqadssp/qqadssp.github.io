@@ -53,8 +53,8 @@ $$
 　　在TRPO中，目标函数(代理目标)被最大化，在满足一个对策略更新尺度的约束下。特殊的  
 
 $$
-\underset{\theta}{maximize} \; \hat{E}_t[\frac{\pi_{\theta}(a_t \mid s_t)}{\pi_{\theta_{old}}}\hat{A}_t] \\  
-s.t. \; \hat{E}_t\left[KL\left[\pi_{\theta_{old}}(\cdot \mid s_t),\pi_(\theta)(\cdot \mid s_t)\right]\right]\leq \delta  
+\underset{\theta}{maximize} \; \hat{E}_t \left[ \frac{\pi_{\theta}(a_t \mid s_t)}{\pi_{\theta_{old}}}\hat{A}_t \right] \\  
+s.t. \; \hat{E}_t \left[ KL \left[ \pi_{\theta_{old}}(\cdot \mid s_t),\pi_(\theta)(\cdot \mid s_t) \right] \right] \leq \delta  
 $$
 
 　　此处，$\theta_{old}$是更新前的策略参数向量。这个问题可以使用共轭梯度法高效的近似求解，在对目标进行一个线性近似和对约束进行一个二次近似后。  
@@ -71,7 +71,7 @@ $$
 　　令$r(\theta)$代表概率比率$r(\theta)=\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}$，所以$r(\theta_{old})=1$。TRPO最大化一个代理目标  
 
 $$
-L^{CPI}(\theta)=\hat{E}_t[\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t]=\hat{E}_t[r_t(\theta)\hat{A}_t]  
+L^{CPI}(\theta)=\hat{E}_t \left[ \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t \right] =\hat{E}_t[r_t(\theta)\hat{A}_t]  
 $$
 
 　　上标CPI代表保守策略迭代[KL02]，文中提出这个目标。没有约束，最大化$L^{CPI}$将导致太大的策略更新，因此，我们现在考虑如何修改这个目标，惩罚将$r(\theta)$移动远离1的策略改变。  
@@ -79,10 +79,11 @@ $$
 　　我们提出的主体目标是：  
 
 $$
-L^{CLIP}=\hat{E}_t[\min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)]  
+L^{CLIP}=\hat{E}_t \left[ \min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t) \right]  
 $$
 
-　　这里$\epsilon$是一个超参数，比如说，$\epsilon=0.2$。这个目标的动机如下。在$\min$中的第一项是$L^{CPI}$。第二项，$ clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t $ ，通过修剪概率比率修改代理目标，移除移动$ r_t $到区间$ [1-\epsilon, 1+\epsilon] $外的激励。最后，我们取修剪目标和未修剪目标的最小值，所以最后的目标是一个未修剪目标的下界(即悲观的界限)。以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率$r$在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
+　　这里$\epsilon$是一个超参数，比如说，$\epsilon=0.2$。这个目标的动机如下。在$\min$中的第一项是$L^{CPI}$。第二项，$ clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t $ ，通过修剪概率比率修改代理目标，移除移动$ r_t $到区间$ [1-\epsilon, 1+\epsilon] $外的激励。
+最后，我们取修剪目标和未修剪目标的最小值，所以最后的目标是一个未修剪目标的下界(即悲观的界限)。以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率$r$在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
 
 　　图2提供另一个关于代理目标$L^{CLIP}$的直觉的来源。它展示了随着我们沿着策略更新方向插值时几个目标函数如何变化，通过在一个连续控制问题上的proximal policy optimization(算法我们将简短介绍)。我们可以看到$L^{CLIP}$是$L^{CPI}$的下界，对于有太大策略更新时有一个惩罚项。  
 
@@ -95,14 +96,15 @@ $$
 　　使用几个minibatch的SGD计算，优化KL惩罚目标  
 
 $$
-L^{KLPEN} = \hat{E}_t[\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t-\beta KL[\pi_{\theta_{old}}(\cdot \mid s_t), \pi_\theta(\cdot \mid s_t)]]  
+L^{KLPEN} = \hat{E}_t \left[ \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t-\beta KL \left[ \pi_{\theta_{old}}(\cdot \mid s_t), \pi_\theta(\cdot \mid s_t) \right] \right]  
 $$
 
-　　计算$d=\hat{E}_t[KL[\pi_{\theta_{old}}(\cdot \mid s_t), \pi_\theta(\cdot \mid s_t)]]$  
+　　计算
+$d=\hat{E}_t \left[ KL \left[ \pi_{\theta_{old}}(\cdot \mid s_t), \pi_\theta(\cdot \mid s_t) \right] \right]$  
 
-　　--如果$d<d_{targ}/1.5 \; \beta \leftarrow \beta/2$  
+　　--如果$d<d_{targ}/1.5, \; \beta \leftarrow \beta/2$  
 
-　　--如果$d>d_{targ} \times 1.5 \; \beta \rightarrow \beta \times 2$  
+　　--如果$d>d_{targ} \times 1.5, \; \beta \rightarrow \beta \times 2$  
 
 　　更新的$\beta$用于下一个策略更新。以这个方案，我们偶尔看到KL散度与$d_{targ}$显著不同的策略更新，然而，这很稀少，$\beta$很快调整。上面的1.5和2是试探选取的，但算法对它们并不敏感。$\beta$的初始值是另一个超参数但并不重要，因为算法会很快调整它。  
 
@@ -143,7 +145,8 @@ $$
 
 　　修剪：$L_t(\theta)=\min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)$  
 
-　　KL惩罚(固定或自适应)：$ L_t(\theta)=r_t(\theta)\hat(A)_t-\beta KL[\pi_{\theta_{old}}, \pi_\theta] $  
+　　KL惩罚(固定或自适应)：
+$ L_t(\theta)=r_t(\theta)\hat(A)_t-\beta KL[\pi_{\theta_{old}}, \pi_\theta] $  
 
 　　对于KL惩罚，可以使用固定惩罚系数$\beta$或者如第4节使用目标KL值$d_{targ}$的自适应系数。注记我们也尝试在log空间进行修剪，但发现性能并没有变好。  
 　　由于我们为每个算法变体搜索超参数，我们选择在计算简单的标准测试上来测试算法。也就是，我们使用7个OpenAI Gym中实现的模拟机器人任务，使用MuJoCo物理引擎。我们在每个任务上做100W时间步训练。除了用于修剪($\epsilon$)和KL惩罚($\beta, d_{targ}$)的超参数，这是我们要搜索的，其他超参数在表3中给出。  
