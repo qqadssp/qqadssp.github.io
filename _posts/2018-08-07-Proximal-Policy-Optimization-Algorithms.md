@@ -37,10 +37,10 @@ author: CQ
 　　策略梯度方法通过计算一个策略梯度的评估量并且将其插入一个随机梯度上升算法中实现。最常用的梯度评估量有形式  
 
 $$
-\hat{g}=\hat{E}_t[\nabla_{\theta}\log\pi_{\theta}(a_t \mid s_t)hat{A}_t]   
-$$s
+\hat{g}=\hat{E}_t[\nabla_{\theta}\log\pi_{\theta}(a_t \mid s_t)\hat{A}_t]   
+$$
 
-　　此处$\pi_\theta$是一个随机策略，$\hat{A}_t$是一个在时间t的优势函数评估量。这里，期望$hat{E}[...]$表示在一个有限抽样batch上的经验平均，在算法中其在抽样和优化之间交替进行。使用自动微分软件的实现，通过构造一个梯度是策略梯度评估量的目标函数进行，评估量$hat{g}通过微分目标函数得到。  
+　　此处$\pi_\theta$是一个随机策略，$\hat{A}_t$是一个在时间t的优势函数评估量。这里，期望$\hat{E}[...]$表示在一个有限抽样batch上的经验平均，在算法中其在抽样和优化之间交替进行。使用自动微分软件的实现，通过构造一个梯度是策略梯度评估量的目标函数进行，评估量$hat{g}$通过微分目标函数得到。  
 
 $$
 L^{PG}(\theta) = \hat{E}_t[\log\pi_{\theta}(a_t \mid s_t)hat{A}_t]  
@@ -53,14 +53,16 @@ $$
 　　在TRPO中，目标函数(代理目标)被最大化，在满足一个对策略更新尺度的约束下。特殊的  
 
 $$
-maximize hat{E}_t[\frac{\pi_{\theta}(a_t \mid s_t)}{\pi_{\theta_{old}}}hat{A}_t]  
-s.t. hat{E}_t[KL[\pi_{\theta_{old}}(. \mid s_t),\pi_(\theta)(. \mid s_t)]]\leq \delta  
+maximize \hat{E}_t[\frac{\pi_{\theta}(a_t \mid s_t)}{\pi_{\theta_{old}}}\hat{A}_t] \\  
+s.t. \hat{E}_t[KL[\pi_{\theta_{old}}(. \mid s_t),\pi_(\theta)(. \mid s_t)]]\leq \delta  
 $$
 
 　　此处，$\theta_{old}$是更新前的策略参数向量。这个问题可以使用共轭梯度法高效的近似求解，在对目标进行一个线性近似和对约束进行一个二次近似后。  
 　　证明TRPO的理论实际上建议使用一个惩罚项而不是约束，即求解对某个系数$\beta$的无约束优化问题  
 
+$$
 maximize \hat{E}_t[\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}hat{A}_t-\betaKL[\pi_\theta(. \mid s_t),(. \mid s_t)]]  
+$$
 
 　　这遵循这样一个事实，一个确定的代理目标(在状态上计算最大KL值而不是平均值)在策略$\pi$的性能上组成一个下界(即一个悲观估计)。TRPO使用硬性强约束而不是惩罚项，因为选择单一$\beta$值在多个问题上表现良好是很困难的——甚至在单一问题中也是，特征在学习过程中变化。因此，为了达到我们模拟TRPO单调改进的一阶算法的目的，实验显示简单选择一个固定的惩罚系数$\beta$并用SGD优化惩罚目标方程(5)是不够的，需要额外的修改。  
 
@@ -69,7 +71,7 @@ maximize \hat{E}_t[\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s
 　　令$r(\theta)$代表概率比率$r(\theta)=\frac{\pi_\theta(a_t s_t)}{\pi_{\theta_{old}}(a_t s_t)}，所以$r(\theta_{old})=1$。TRPO最大化一个代理目标  
 
 $$
-L^{CPI}(\theta)=hat{E}_t[\frac{\pi_theta(a_t \mid \s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}hat{A}_t]=hat{E}_t[r_t(\theta)hat{A}_t]  
+L^{CPI}(\theta)=\hat{E}_t[\frac{\pi_theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t]=\hat{E}_t[r_t(\theta)\hat{A}_t]  
 $$
 
 　　上标CPI代表保守策略迭代[KL02]，文中提出这个目标。没有约束，最大化$L^{CPI}$将导致太大的策略更新，因此，我们现在考虑如何修改这个目标，惩罚将$r(\theta)$移动远离1的策略改变。  
@@ -77,10 +79,10 @@ $$
 　　我们提出的主体目标是：  
 
 $$
-L^{CLIP}=hat{E}_t[min(r_t(\theta)hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)hat{A}_t)]  
+L^{CLIP}=\hat{E}_t[min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)]  
 $$
 
-　　这里$\epsilon$是一个超参数，比如说，$\epsilon=0.2$。这个目标的动机如下。在$min$中的第一项是$L^{CPI}$。第二项，$clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t$，通过修剪概率比率修改代理目标，移除移动$r_t$到区间$[1-\epsilon, 1+\epsilon]$外的激励。最后，我们取修剪目标和未修剪目标的最小值，所以最后的目标是一个未修剪目标的下界(即悲观的界限)。以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率r在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
+　　这里$\epsilon$是一个超参数，比如说，$\epsilon=0.2$。这个目标的动机如下。在$min$中的第一项是$L^{CPI}$。第二项，$ clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t $，通过修剪概率比率修改代理目标，移除移动$ r_t $到区间$ [1-\epsilon, 1+\epsilon] $外的激励。最后，我们取修剪目标和未修剪目标的最小值，所以最后的目标是一个未修剪目标的下界(即悲观的界限)。以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率r在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
 
 　　图2提供另一个关于代理目标$L^{CLIP}$的直觉的来源。它展示了随着我们沿着策略更新方向插值时几个目标函数如何变化，通过在一个连续控制问题上的proximal policy optimization(算法我们将简短介绍)。我们可以看到$L^{CLIP}$是$L^{CPI}$的下界，对于有太大策略更新时有一个惩罚项。  
 
@@ -91,9 +93,11 @@ $$
 　　在这个算法的最简单实现中，我们在每个策略更新中执行如下步骤：  
 
 　　使用几个minibatch的SGD计算，优化KL惩罚目标  
+
 $$
-L^{KLPEN} = hat{E}_t[\frac{\pi_\theta(a_t \mid \s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}hat{A}_t-\betaKL[\pi_{\theta_{old}}(. \mid s_t), \pi_\theta(. \mid s_t)]]  
+L^{KLPEN} = \hat{E}_t[\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t-\beta KL[\pi_{\theta_{old}}(. \mid s_t), \pi_\theta(. \mid s_t)]]  
 $$
+
 　　计算$d=hat{E}_t[KL[\pi_{\theta_{old}}(. \mid s_t), \pi_\theta(. \mid s_t)]]$  
 　　--如果$d<d_{targ}/1.5 \beta<-\beta/2$  
 　　--如果$d>d_{targ}*1.5, \beta<-\beta*2$  
@@ -115,14 +119,14 @@ $$
 　　一个类型的策略梯度实现，在[Min+16]中推广且很适合使用循环神经网络，运行T时间步策略(T比计算长度少得多)，使用收集的采样用于更新。这类实现需要不使用超过时间步T的优势函数评估量。[Min+16]使用的评估量为  
 
 $$
-\hat{A}_t=-V(s_t)+r_t+\gammar_{t+1}+...+\gamma^{T-t+1}r_{T-1}+\gamma^{T-t}V(s_T)
+\hat{A}_t=-V(s_t)+r_t+\gamma_{t+1}+...+\gamma^{T-t+1}r_{T-1}+\gamma^{T-t}V(s_T)
 $$
 
-　　此处t特指[0, T]之内的时间索引，给定一个长度T的轨迹片段。泛化这个选择，我们可以使用一个截断版本的广义优势函数评估，当$\lamda=1$时退化为等式(10):  
+　　此处t特指[0, T]之内的时间索引，给定一个长度T的轨迹片段。泛化这个选择，我们可以使用一个截断版本的广义优势函数评估，当$\lambda=1$时退化为等式(10):  
 
 $$
-\hat{A}_t=\delta_t+(\gamma\lamda)\delta_{t+1}+...+...+(\gamma\lamda)^{T-t+1}\delta_{T-1}  
-\delta=r_t+\gammaV(s_{t+1})-V(s_t)  
+\hat{A}_t=\delta_t+(\gamma\lambda)\delta_{t+1}+...+...+(\gamma\lambda)^{T-t+1}\delta_{T-1} \\  
+\delta=r_t+\gamma V(s_{t+1})-V(s_t)  
 $$
 
 　　使用固定长度轨迹片段的Proximal Policy Optimization (PPO)算法如下展示。每个迭代步，(并行的)N个actors中的每个都收集T时间步数据。然后我们在这些NT时间步数据上构造代理损失，用SGD(或通常为了更好的性能，用Adam[KB14])优化它K轮。  
@@ -132,8 +136,11 @@ $$
 ### 6.1 代理目标的比较
 
 　　首先，我们在不同超参数下比较几个不同的代理目标。此处，我们将代理目标$L^{CLIP}$与几个自然变体和简化版本进行比较。  
+
 　　无修剪或惩罚：$L_t(\theta)=r_t(\theta)\hat(A)_t$  
+
 　　修剪：$L_t(\theta)=min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)$  
+
 　　KL惩罚(固定或自适应)：$L_t(\theta)=r_t(\theta)\hat(A)_t-\betaKL[\pi_{\theta_{old}}, \pi_\theta]$  
 
 　　对于KL惩罚，可以使用固定惩罚系数beta或者如第4节使用目标KL值$d_{targ}$的自适应系数。注记我们也尝试在log空间进行修剪，但发现性能并没有变好。  
