@@ -82,8 +82,8 @@ $$
 L^{CLIP}=\hat{E}_t \left[ \min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t) \right]  
 $$
 
-　　这里$\epsilon$是一个超参数，比如说，$\epsilon=0.2$。这个目标的动机如下。在$\min$中的第一项是$L^{CPI}$。第二项，$ clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t $ ，通过修剪概率比率修改代理目标，移除移动$ r_t $到区间$ [1-\epsilon, 1+\epsilon] $外的激励。
-最后，我们取修剪目标和未修剪目标的最小值，所以最后的目标是一个未修剪目标的下界(即悲观的界限)。以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率$r$在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
+　　这里$\epsilon$是一个超参数，比如说，$\epsilon=0.2$。这个目标的动机如下。在$\min$中的第一项是$L^{CPI}$。第二项，$ clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t $ ，通过修剪概率比率修改代理目标，移除移动$ r_t $到区间$ [1-\epsilon, 1+\epsilon] $外的激励。最后，我们取修剪目标和未修剪目标的最小值，所以最后的目标是一个未修剪目标的下界(即悲观的界限)。  
+以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率$r$在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
 
 　　图2提供另一个关于代理目标$L^{CLIP}$的直觉的来源。它展示了随着我们沿着策略更新方向插值时几个目标函数如何变化，通过在一个连续控制问题上的proximal policy optimization(算法我们将简短介绍)。我们可以看到$L^{CLIP}$是$L^{CPI}$的下界，对于有太大策略更新时有一个惩罚项。  
 
@@ -99,7 +99,7 @@ $$
 L^{KLPEN} = \hat{E}_t \left[ \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{old}}(a_t \mid s_t)}\hat{A}_t-\beta KL \left[ \pi_{\theta_{old}}(\cdot \mid s_t), \pi_\theta(\cdot \mid s_t) \right] \right]  
 $$
 
-　　计算
+　　计算  
 $d=\hat{E}_t \left[ KL \left[ \pi_{\theta_{old}}(\cdot \mid s_t), \pi_\theta(\cdot \mid s_t) \right] \right]$  
 
 　　--如果$d<d_{targ}/1.5, \; \beta \leftarrow \beta/2$  
@@ -118,7 +118,7 @@ $$
 L^{CLIP+VF+S}(\theta) = \hat{E}_t[L^{CLIP}_t(\theta)-c_1L^{VF}_t(\theta)+c_2S[\pi_\theta](s_t)]  
 $$
 
-　　此处$c_1$、$c_2$是系数，S表示熵奖励，$L^{VF}_t$是平方误差损失$(V(s_t)-V^{targ}_t)^2$。    
+　　此处$c_1$、$c_2$是系数，S表示熵奖励，$L^{VF}_t$是平方误差损失$(V(s_t)-V^{targ}_t)^2$。  
 
 　　一个类型的策略梯度实现，在[Min+16]中推广且很适合使用循环神经网络，运行T时间步策略(T比计算长度少得多)，使用收集的采样用于更新。这类实现需要不使用超过时间步T的优势函数评估量。[Min+16]使用的评估量为  
 
@@ -145,7 +145,7 @@ $$
 
 　　修剪：$L_t(\theta)=\min(r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t)$  
 
-　　KL惩罚(固定或自适应)：
+　　KL惩罚(固定或自适应)：  
 $ L_t(\theta)=r_t(\theta)\hat(A)_t-\beta KL[\pi_{\theta_{old}}, \pi_\theta] $  
 
 　　对于KL惩罚，可以使用固定惩罚系数$\beta$或者如第4节使用目标KL值$d_{targ}$的自适应系数。注记我们也尝试在log空间进行修剪，但发现性能并没有变好。  
