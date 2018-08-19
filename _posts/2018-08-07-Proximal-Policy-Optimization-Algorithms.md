@@ -86,7 +86,13 @@ $$
 
 　　以这个方案，我们只忽略了将使目标改进的概率比率的变化，引入使目标变坏的概率比率。注记对于$\theta_{old}$(此处$r=1$)附近的第一阶，$L^{CLIP}=L^{CPI}$，但是，随着$\theta$移动离开$\theta_{old}$，他们变得不同。图1画出$L^{CLIP}$中的单独一项(即单一时间t)，注记概率比率$r$在$1-\epsilon$或$1+\epsilon$处被修剪，依赖于优势函数是正或负。  
 
+![](/assets/Proximal_Policy_Optimization_Algorithms/Figure_1.png)
+图1. 曲线显示代理函数$L^{CLIP}$的一项(即单一时间步)作为概率比率$r$的函数，对于正优势函数(左边)和负优势函数(右边)。每个曲线上的红圈显示优化的起始点，即$r=1$。注记$L^{CLIP}$对很多这些项求和。
+
 　　图2提供另一个关于代理目标$L^{CLIP}$的直觉的来源。它展示了随着我们沿着策略更新方向插值时几个目标函数如何变化，通过在一个连续控制问题上的proximal policy optimization(算法我们将简短介绍)。我们可以看到$L^{CLIP}$是$L^{CPI}$的下界，对于有太大策略更新时有一个惩罚项。  
+
+![](/assets/Proximal_Policy_Optimization_Algorithms/Figure_2.png)
+图2. 代理目标，即我们在初始策略参数$\theta_{old}$和更新策略参数之间插值的点，我们在一个PPO迭代后计算的更新值。更新的策略与初始策略间有大约0.02的KL散度，这是$L^{CLIP}$最大的点。这个曲线是Hopper-v1问题的第一个策略更新，使用6.1节中提供的参数。
 
 ## 4. 自适应KL惩罚系数
 
@@ -137,6 +143,8 @@ $$
 
 　　使用固定长度轨迹片段的Proximal Policy Optimization (PPO)算法如下展示。每个迭代步，(并行的)N个actors中的每个都收集T时间步数据。然后我们在这些NT时间步数据上构造代理损失，用SGD(或通常为了更好的性能，用Adam[KB14])优化它K轮。  
 
+![](/assets/Proximal_Policy_Optimization_Algorithms/Algorithm_1.png)
+
 ## 6. 实验
 
 ### 6.1 代理目标的比较
@@ -162,13 +170,25 @@ $$
 
 　　结果在表1中展示。注记对于没有修剪或惩罚的设置，分数为负，因为对于一个环境(half cheetah)，它导致了一个非常负的得分，比最初随机策略还要差。  
 
+![](/assets/Proximal_Policy_Optimization_Algorithms/Table_1.png)
+表1. 连续控制标准测试的结果。对每个算法/超参数设置的平均归一化得分(在算法的21轮计算，7个环境上)。$\beta$初始为1。
+
 ### 6.2 连续控制领域中与其他算法比较
 
 　　接下来，我们将PPO(有第3节中修剪代理目标)与几个来自文献中的其他方法进行比较，那些被认为在连续控制问题中很有效的方法。我们与如下算法调整后的实现进行比较：trust region policy optimization[Sch+15b]，cross-entropy method(CEM)[SL16], 自适应步长综合梯度，A2C[Min+16]，含trust region的A2C[Wan+16]。A2C代表advantage actor critic，是A3C的同步版本，我们发现它相比异步版本有相同或更好的表现。对于PPO，我们使用上节的超参数，$\epsilon=0.2$。我们看到PPO在几乎所有连续控制环境上超越之间的算法。  
 
+![](/assets/Proximal_Policy_Optimization_Algorithms/Figure_3.png)
+图3. 在几个MuJoCo环境上与几个算法的比较，训练100W时间步。
+
 ### 6.3 连续控制领域示例：仿人类奔跑和操控
 
 　　为了展示在高维连续控制问题上PPO的性能，我们在一组包含3D仿人形问题上进行训练，此处机器人必须奔跑，操控，从地上站起来，可能有时被扔方块。我们在其上测试的3个任务是(1)RoboschoolHumanoid：仅向前运动，(2)RoboschoolHumanoidFlagrun：每200时间步或当目标被达到时目标位置随机变化，(3)RoboschoolHumanoidFlagrunHarder, 这里机器人被扔方块，需要从地上站起来。图5为一个完成学习的策略的静止帧，图4为3个任务的学习曲线。超参数在表4中提供。同时的工作中，Heess等人[Hee+17]使用PPO的自适应KL变体(第4节)学习3D机器人的运动策略。  
+
+![](/assets/Proximal_Policy_Optimization_Algorithms/Figure_4.png)
+图4. PPO在3D仿人形机器人控制任务的学习曲线，使用Roboschool。
+
+![](/assets/Proximal_Policy_Optimization_Algorithms/Figure_5.png)
+图5. 从RoboschoolHumanoidFlagrun学习到的策略的静止帧。在前6帧里，机器人跑向一个目标。然后目标位置随机变化，机器人转向并跑向新目标。
 
 ### 6.4 在Atari游戏领域与其他算法比较
 
