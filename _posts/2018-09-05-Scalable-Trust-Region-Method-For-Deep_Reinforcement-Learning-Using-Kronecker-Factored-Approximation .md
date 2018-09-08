@@ -55,11 +55,13 @@ $$
 A^\pi(s_t, a_t)=\sum_{i=0}^{k-1}(\gamma^ir(s_{t+i}, a_{t+i})+\gamma^kV_\phi^\pi(s_{t+k}))-V_\phi^\pi(s_t)
 $$
 
-　　1此处$V_\phi^\pi(s_t)$是价值网络，提供一个在策略$\pi$下给定状态的奖励总和的期望的评估，$V_\phi^\pi(s_t)=E_\pi[R_t]$。为了训练价值网络的参数，我们再次遵循A3C，执行时序差分更新，来最小化k步奖励$\hat{R}_t$和预测价值  
+　　此处$V_\phi^\pi(s_t)$是价值网络，提供一个在策略$\pi$下给定状态的奖励总和的期望的评估，$V_\phi^\pi(s_t)=E_\pi[R_t]$。为了训练价值网络的参数，我们再次遵循A3C，执行时序差分更新，来最小化k步奖励$\hat{R}_t$和预测价值  
 
-$\frac12 \mid \mid \hat{R}_t -$  
+$$
+\frac12 \mid \mid \hat{R}_t - V_\phi^\pi (s_t) \mid \mid ^2
+$$
 
-$V_\phi^\pi (s_t) \mid \mid ^2$之间的平方差。  
+之间的平方差。  
 
 ### 2.2 使用Kronecker-factored近似的自然梯度
 
@@ -71,10 +73,11 @@ $V_\phi^\pi (s_t) \mid \mid ^2$之间的平方差。
 
 $$
 \begin{aligned}
-F_l = & E[vec{\nabla_WL}vec{\nabla_WL}^T] \\
+F_l & = E[vec(\nabla_WL)vec(\nabla_WL)^T] \\
 & =E[aa^T \bigotimes \nabla_sL(\nabla_sL)^T] \\
 & \approx E[aa^T] \bigotimes E[\nabla_sL(\nabla_sL)^T] \\
-& := A \bigotimes S := \hat{F}_l
+& := A \bigotimes S \\
+& := \hat{F}_l
 \end{aligned}
 $$
 
