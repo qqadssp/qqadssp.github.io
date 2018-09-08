@@ -65,7 +65,7 @@ $$
 
 ### 2.2 使用Kronecker-factored近似的自然梯度
 
-　　为了最小化非凸函数$J(\theta)$，最陡梯度方法计算更新$\delta \theta$，最小化$J(\theta+\delta\theta)$，在$\mid \mid \delta\theta \mid \mid _B \leq 1$的约束下，此处$\mid \mid \cdot \mid \mid _B$是以$\mid \mid x \mid \mid _B=(x^TBx)^{1/2}$定义的范数，B是一个半正定矩阵。  
+　　为了最小化非凸函数$J(\theta)$，最陡梯度方法计算更新$\delta \theta$，最小化$J(\theta+\delta\theta)$，在$\mid \mid \Delta\theta \mid \mid _B \leq 1$的约束下，此处$\mid \mid \cdot \mid \mid _B$是以$\mid \mid x \mid \mid _B=(x^TBx)^{1/2}$定义的范数，B是一个半正定矩阵。  
 
 　　这个约束优化问题有$\delta\theta \leftrightarrow -B^{-1}\nabla_\theta J$的形式，此处$\nabla_\theta J$是标准梯度。当范数是欧几里得范数时，即$B=I$，这变成通常使用的梯度下降方法。然而，欧几里得范数的变化依赖于参数$\theta$。这不合理，因为模型的参数是任意选择的，它不应该影响优化路径。自然梯度方法使用Fisher信息矩阵F构建范数，KL散度的局部二阶近似。这个范数在概率分布上与模型参数$\theta$独立，提供更稳定和高效的更新。然而，由于现代神经网络可能含有数百万参数，计算好存储准确的Fisher矩阵及其逆是不现实的，所以我们不得不进行近似。  
 
@@ -84,7 +84,7 @@ $$
 　　此处，A为$E[aa^T]$，S为$E[\nabla_sL(\nabla_sL)^T]$。这个近似可以解释为，假设激活的二阶统计量与反向传播微分无关。有了这个近似，自然梯度更新可以高效的计算，利用基本公式$(P \bigotimes Q)^{-1} = P^{-1} \bigotimes Q^{-1}$和$(P \bigotimes Q)vec(T) = PTQ^T$。  
 
 $$
-vec(\Delta W) = \hat{F}_l^{-1}vec{\nabla_WJ}=vec(A^{-1} \nabla_WJS^{-1})
+vec(\Delta W) = \hat{F}_l^{-1}vec(\nabla_WJ)=vec(A^{-1} \nabla_WJS^{-1})
 $$
 
 　　从上述公式我们看到，KFAC近似自然梯度更新，只需要与W尺度类似的矩阵计算。Grosse和Martens最近扩展K-FAC算法用于卷积网络。Ba等人随后发展一个方法的分布版本，大多数前序计算通过异步计算得到减轻。在训练大型现代分类卷积网络中，分布式k-FAC达到2-3倍加速。  
@@ -106,7 +106,7 @@ $$
 
 　　此处$p(\tau)$是路径分布，由$p(s_0) \prod_{t=0}^T \pi(a_t \mid s_t) p(s_{t+1} \mid s_t, a_t)$给定。实际上，通过训练阶段收集的路径近似这个棘手的期望。  
 
-　　现在我们描述了一种应用自然梯度优化critic的方法。学习critic可以认为是最小二乘近似问题，尽管用的是移动目标。在最小二乘函数近似的设置中，二阶算法选项通常是高斯-牛顿，以高斯-牛顿矩阵$G:=E[J^TJ]$近似曲率，J为将参数映射到结果的Jacobian矩阵。对于高斯观测模型，高斯-牛顿矩阵与Fisher矩阵等效，这个等效允许我们也可以应用K-FAC到critic。特殊的，我们假设critic v的输出被定义为高斯分布$p(v \mid s_t) \tilde N(v;V(s_t),\sigma^2)$。critic的Fisher矩阵由这个高斯输出分布定义。实际上，我们可以简单的设定$\sigma$为1，这与平凡的高斯-牛顿法等效。  
+　　现在我们描述了一种应用自然梯度优化critic的方法。学习critic可以认为是最小二乘近似问题，尽管用的是移动目标。在最小二乘函数近似的设置中，二阶算法选项通常是高斯-牛顿，以高斯-牛顿矩阵$G:=E[J^TJ]$近似曲率，J为将参数映射到结果的Jacobian矩阵。对于高斯观测模型，高斯-牛顿矩阵与Fisher矩阵等效，这个等效允许我们也可以应用K-FAC到critic。特殊的，我们假设critic v的输出被定义为高斯分布$p(v \mid s_t) \leftrightarrow N(v;V(s_t),\sigma^2)$。critic的Fisher矩阵由这个高斯输出分布定义。实际上，我们可以简单的设定$\sigma$为1，这与平凡的高斯-牛顿法等效。  
 
 　　如果actor和critic是分离的，可以使用上面定义的度量应用K-FAC分别更新每一个。但是为了避免训练中的不稳定性，通常使用一种两个网络共享低层表达但有各自输出层的结构。这种情况下，我们可以通过假设两个输出分布相互独立，定义策略和值的联合分布，即$p(a,v \mid s)=\pi(a \mid s)p(v \mid s)$，根据$p(a,v \mid s)$构造Fisher矩阵，这与标准K-FAC并无不同，除了我们需要独立的抽样网络输出。然后我们可以同时用K-FAC近似Fisher矩阵$E_{p(\tau)}[\nabla \log p(a,v \mid s) \nabla \log p(a,v \mid s)^T]$来执行更新。  
 
@@ -114,7 +114,7 @@ $$
 
 ### 3.2 步长选择和trust-region优化
 
-　　传统上，自然梯度执行类似SGD的更新，$\theta \leftarrow \theta-\eta F^{-1} \nabla_\theta L$。但在强化学习范围内，Schulman等人观察到这个更新规则会导致策略的过大更新，导致算法过早收敛到近似确定策略。他们主张改而使用trust region方法，更新被缩减下来，以至多一个特定的量修改策略分布(KL散度项)。因此，我们采用由[2]引入的K-FAC的trust region公式，选择有效步长$\eta$为$\min(\eta_{\max},\sqrt{\frac{2\delta}{\Delta^T\hat{F}\Delta\theta}})$，此处学习率$\eta_{\max}$和trust region半径$\delta$是超参数。如果actor和critic是分离的，我们需要为两者单独微调不同组的$\eta_{\max}$和$\delta$。对于平凡的高斯-牛顿法，critic输出分布的方差参数可以被吸入学习率参数。另一方面，如果他们共享表征，我们需要微调一组$\eta_{max}$,$\delta$，以及critic的训练损失的权重参数，根据对应的actor。  
+　　传统上，自然梯度执行类似SGD的更新，$\theta \leftarrow \theta-\eta F^{-1} \nabla_\theta L$。但在强化学习范围内，Schulman等人观察到这个更新规则会导致策略的过大更新，导致算法过早收敛到近似确定策略。他们主张改而使用trust region方法，更新被缩减下来，以至多一个特定的量修改策略分布(KL散度项)。因此，我们采用由[2]引入的K-FAC的trust region公式，选择有效步长$\eta$为$\min(\eta_{\max},\sqrt{\frac{2\delta}{\Delta\theta^T\hat{F}\Delta\theta}})$，此处学习率$\eta_{\max}$和trust region半径$\delta$是超参数。如果actor和critic是分离的，我们需要为两者单独微调不同组的$\eta_{\max}$和$\delta$。对于平凡的高斯-牛顿法，critic输出分布的方差参数可以被吸入学习率参数。另一方面，如果他们共享表征，我们需要微调一组$\eta_{max}$,$\delta$，以及critic的训练损失的权重参数，根据对应的actor。  
 
 ## 4. 相关工作
 
