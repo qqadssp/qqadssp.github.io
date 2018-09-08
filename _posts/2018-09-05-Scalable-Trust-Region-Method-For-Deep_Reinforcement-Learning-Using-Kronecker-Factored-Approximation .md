@@ -57,19 +57,19 @@ $$
 
 　　此处$V_\phi^\pi(s_t)$是价值网络，提供一个在策略$\pi$下给定状态的奖励总和的期望的评估，$V_\phi^\pi(s_t)=E_\pi[R_t]$。为了训练价值网络的参数，我们再次遵循A3C，执行时序差分更新，来最小化k步奖励$\hat{R}_t$和预测价值  
 
-$\frac{1}{2} \mid \mid \hat{R}_t - V_\phi^\pi (s_t) \mid \mid ^2$之间的平方差。  
+$\frac{1}{2} \mid \mid \hat{R}_t -$  
+$ V_\phi^\pi (s_t) \mid \mid ^2$之间的平方差。  
 
 ### 2.2 使用Kronecker-factored近似的自然梯度
 
-　　为了最小化非凸函数$J(\theta)$，最陡梯度方法计算更新$\delta \theta$，最小化$J(\theta+\delta\theta)$，在$\mid \mid \delta\theta \mid \mid _B \leq 1$的约束下，此处$\mid \mid \cdot \mid \mid _B$是以$\mid \mid x \mid \mid _B=(x^TBx)^{1/2}$定义的范数，B是一个半正定矩阵。  
-
-这个约束优化问题有$\delta\theta \rightarrow -B^{-1}\nabla_\theta J$的形式，此处$\nabla_\theta J$是标准梯度。当范数是欧几里得范数时，即$B=I$，这变成通常使用的梯度下降方法。然而，变化的欧几里得范数依赖于参数$\theta$。这不合理，因为模型的参数是任意选择的，它不应该影响优化路径。自然梯度方法使用Fisher信息矩阵F构建范数，KL散度的局部二阶近似。这个范数在概率分布上与模型参数$\theta$独立，提供更稳定和高效的更新。然而，由于现代神经网络可能含有数百万参数，计算好存储准确的Fisher矩阵及其逆是不现实的，所以我们不得不进行近似。  
+　　为了最小化非凸函数$J(\theta)$，最陡梯度方法计算更新$\delta \theta$，最小化$J(\theta+\delta\theta)$，在$\mid \mid \delta\theta \mid \mid _B \leq 1$的约束下，此处$\mid \mid \cdot \mid \mid _B$是以$\mid \mid x \mid \mid _B=(x^TBx)^{1/2}$定义的范数，B是一个半正定矩阵。这个约束优化问题有$\delta\theta \leftrightarrow -B^{-1}\nabla_\theta J$的形式，此处$\nabla_\theta J$是标准梯度。当范数是欧几里得范数时，即$B=I$，这变成通常使用的梯度下降方法。然而，欧几里得范数的变化依赖于参数$\theta$。这不合理，因为模型的参数是任意选择的，它不应该影响优化路径。自然梯度方法使用Fisher信息矩阵F构建范数，KL散度的局部二阶近似。这个范数在概率分布上与模型参数$\theta$独立，提供更稳定和高效的更新。然而，由于现代神经网络可能含有数百万参数，计算好存储准确的Fisher矩阵及其逆是不现实的，所以我们不得不进行近似。  
 
 　　一个最近提出的技术叫做Kronecker-factored近似曲率，使用Kronecker-factored近似Fisher矩阵执行高效近似自然梯度更新。我们令$p(y \mid x)$为神经网络的输出分布，$L=\log p(y \mid x)$为对数似然性。令$W \in R^{C_{out} \times C_{in}}$为第$l^{th}$层的权重矩阵，此处$C_{out}$和$C_{in}$是层的输出/输入神经元数量。定义输入本层的激活向量为$a \in R^{C_{in}}$，下一层的激活前向量为$s=Wa$。注记权重梯度有$\nabla_WL=(\nabla_sL)a^T$给出。K-FAC使用这一点并进一步近似与$l$层相关的分块$\hat{F}_l$为
 
 $$
 F_l = E[vec{\nabla_WL}vec{\nabla_WL}^T] \\
-=E[aa^T \bigotimes \nabla_sL(\nabla_sL)^T] \approx E[aa^T] \bigotimes E[\nabla_sL(\nabla_sL)^T] \\
+=E[aa^T \bigotimes \nabla_sL(\nabla_sL)^T] \\
+\approx E[aa^T] \bigotimes E[\nabla_sL(\nabla_sL)^T] \\
 := A \bigotimes S := \hat{F}_l
 $$
 
