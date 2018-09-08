@@ -55,11 +55,11 @@ $$
 A^\pi(s_t, a_t)=\sum_{i=0}^{k-1}(\gamma^ir(s_{t+i}, a_{t+i})+\gamma^kV_\phi^\pi(s_{t+k}))-V_\phi^\pi(s_t)
 $$
 
-　　此处$V_\phi^\pi(s_t)$是价值网络，提供一个在策略$\pi$下给定状态的奖励总和的期望的评估，$V_\phi^\pi(s_t)=E_\pi[R_t]$。为了训练价值网络的参数，我们再次遵循A3C，执行时序差分更新，来最小化k步奖励$\hat{R}_t$和预测价值$\frac{1}{2} || \hat{R}_t-V_\phi^\pi(s_t) || ^2$之间的平方差。  
+　　此处$V_\phi^\pi(s_t)$是价值网络，提供一个在策略$\pi$下给定状态的奖励总和的期望的评估，$V_\phi^\pi(s_t)=E_\pi[R_t]$。为了训练价值网络的参数，我们再次遵循A3C，执行时序差分更新，来最小化k步奖励$\hat{R}_t$和预测价值$\frac{1}{2} \mid \mid \hat{R}_t-V_\phi^\pi(s_t) \mid \mid ^2$之间的平方差。  
 
 ### 2.2 使用Kronecker-factored近似的自然梯度
 
-　　为了最小化非凸函数$J(\theta)$，最陡梯度方法计算更新$\delta \theta$，最小化$J(\theta+\delta\theta)$，在$||\delta\theta|| _B < 1$的约束下，此处$|| \dot || _B$是以$||x||_B=(x^TBx)^{1/2}$定义的范数，B是一个半正定矩阵。这个约束优化问题有$\delta\theta \Rightarrow -B^{-1}\nabla_\thetaJ$的形式，此处$\nabla_\thetaJ$是标准梯度。当范数是欧几里得范数时，即$B=I$，这变成通常使用的梯度下降方法。然而，变化的欧几里得范数依赖于参数%\theta$。这不合理，因为模型的参数是任意选择的，它不应该影响优化路径。自然梯度方法使用Fisher信息矩阵F构建范数，KL散度的局部二阶近似。这个范数在概率分布上与模型参数$\theta$独立，提供更稳定和高效的更新。然而，由于现代神经网络可能含有数百万参数，计算好存储准确的Fisher矩阵及其逆是不现实的，所以我们不得不进行近似。  
+　　为了最小化非凸函数$J(\theta)$，最陡梯度方法计算更新$\delta \theta$，最小化$J(\theta+\delta\theta)$，在$\mid \mid \delta\theta \mid \mid _B < 1$的约束下，此处$\mid \mid \cdot \mid \mid _B$是以$\mid \mid x \mid \mid _B=(x^TBx)^{1/2}$定义的范数，B是一个半正定矩阵。这个约束优化问题有$\delta\theta \Rightarrow -B^{-1}\nabla_\thetaJ$的形式，此处$\nabla_\thetaJ$是标准梯度。当范数是欧几里得范数时，即$B=I$，这变成通常使用的梯度下降方法。然而，变化的欧几里得范数依赖于参数$\theta$。这不合理，因为模型的参数是任意选择的，它不应该影响优化路径。自然梯度方法使用Fisher信息矩阵F构建范数，KL散度的局部二阶近似。这个范数在概率分布上与模型参数$\theta$独立，提供更稳定和高效的更新。然而，由于现代神经网络可能含有数百万参数，计算好存储准确的Fisher矩阵及其逆是不现实的，所以我们不得不进行近似。  
 
 　　一个最近提出的技术叫做Kronecker-factored近似曲率，使用Kronecker-factored近似Fisher矩阵执行高效近似自然梯度更新。我们令$p(y \mid x)$为神经网络的输出分布，$L=\log p(y \mid x)$为对数似然性。令$W \in R^{C_{out} \times C_{in}}$为第$l^{th}$层的权重矩阵，此处$C_{out}$和$C_{in}$是层的输出/输入神经元数量。定义输入本层的激活向量为$a \in R^{C_{in}}$，下一层的激活前向量为$s=Wa$。注记权重梯度有$\nabla_WL=(\nabla_sL)a^T$给出。K-FAC使用这一点并进一步近似与$l$层相关的分块$\hat{F}_l$为
 
@@ -102,7 +102,7 @@ $$
 
 ### 3.2 步长选择和trust-region优化
 
-　　传统上，自然梯度执行类似SGD的更新，$\theta \leftarrow \theta-\eta F^{-1} \nabla_\theta L$。但在强化学习范围内，Schulman等人观察到这个更新规则会导致策略的过大更新，导致算法过早收敛到近似确定策略。他们主张改而使用trust region方法，更新被缩减下来，以至多一个特定的量修改策略分布(KL散度项)。因此，我们采用由[2]引入的K-FAC的trust region公式，选择有效步长$eta$为$\min(\eta_{\max},\sqrt{\frac{2\delta}{\Delta^T\hat{F}\Delta\theta}})$，此处学习率$\eta_{\max}$和trust region半径$\delta$是超参数。如果actor和critic是分离的，我们需要为两者单独微调不同组的$eta_{\max}$和$\delta$。对于平凡的高斯-牛顿法，critic输出分布的方差参数可以被吸入学习率参数。另一方面，如果他们共享表征，我们需要微调一组$eta_{max}$,$\delta$，以及critic的训练损失的权重参数，根据对应的actor。  
+　　传统上，自然梯度执行类似SGD的更新，$\theta \leftarrow \theta-\eta F^{-1} \nabla_\theta L$。但在强化学习范围内，Schulman等人观察到这个更新规则会导致策略的过大更新，导致算法过早收敛到近似确定策略。他们主张改而使用trust region方法，更新被缩减下来，以至多一个特定的量修改策略分布(KL散度项)。因此，我们采用由[2]引入的K-FAC的trust region公式，选择有效步长$\eta$为$\min(\eta_{\max},\sqrt{\frac{2\delta}{\Delta^T\hat{F}\Delta\theta}})$，此处学习率$\eta_{\max}$和trust region半径$\delta$是超参数。如果actor和critic是分离的，我们需要为两者单独微调不同组的$eta_{\max}$和$\delta$。对于平凡的高斯-牛顿法，critic输出分布的方差参数可以被吸入学习率参数。另一方面，如果他们共享表征，我们需要微调一组$\eta_{max}$,$\delta$，以及critic的训练损失的权重参数，根据对应的actor。  
 
 ## 4. 相关工作
 
@@ -135,10 +135,10 @@ $$
 
 　　我们又在8个MuJoCo任务上运行30,000,000步评估ACKTR，在表2中我们展示训练中平均奖励最高的10个连续计算轮，以及达到[8]中定义的特定阈值的计算轮数量。如表2，ACKTR在所有任务上更快达到特定阈值，除了Swimmer，TRPO获得4.1倍更高的抽样效率。特别值得注意的是Ant，ACKTR比TRPO多16.4倍抽样效率。由于是平均奖励得分，所有三个模型获得结果与其他两个相当，与TRPO期望相当，它在Walker2d环境中获得10%更好的奖励得分。  
 
-![](/assets/Scalable_Trust_Region_Method_for_Deep_Reinforcement_Learning_using_Kronecker_Fractored_Approximation/Figure_3.png)
+![](/assets/Scalable_Trust_Region_Method_for_Deep_Reinforcement_Learning_using_Kronecker_Factored_Approximation/Figure_3.png)
 图3. 8个MuJoCo环境上训练1,000,000时间步(1时间步等于4帧)的性能比较。阴影区域表示3个随机种子的标准差。  
 
-![](/assets/Scalable_Trust_Region_Method_for_Deep_Reinforcement_Learning_using_Kronecker_Fractored_Approximation/Figure_4.png)
+![](/assets/Scalable_Trust_Region_Method_for_Deep_Reinforcement_Learning_using_Kronecker_Factored_Approximation/Figure_4.png)
 图4. 在3个MuJoCo环境中从图像观察训练40,000,000时间步的性能(1时间步等于4帧)。  
 
 　　我们也尝试直接从像素学习连续控制策略，不提供低维状态空间作为输入。从像素学习连续控制策略比从状态空间学习更具挑战性，部分由于相比Atari较慢的渲染时间(MuJoCo中的0.5秒 vs Atari中的0.002秒)。最新水平actor-critic方法A3C只报告了在相对简单任务上来自像素的结果，如Pendulum，Pointmass2D和Gripper。如图4我们可以看到我们的模型在训练40,000,000步后的最后计算轮奖励明显超越A2C。更特别的，在Reacher, HalfCheetah和Walker2d上，我们的模型相比A2C获得多1.6, 2.8和1.7倍的最终奖励。从像素训练策略的视频在https://www.youyube.com/watch?vgtM87w1xGoM。预训练模型权重可以在https://github.com/emansim/acktr得到。  
@@ -147,7 +147,7 @@ $$
 
 　　以前的自然梯度法将自然梯度更新用于actor。我们的工作中，我们也将自然梯度更新用于criitc。不同之处在于在critic上我们选择哪种范数执行最陡梯度，就是2.2节定义的范数abs()。本节中，我们应用ACKTR到actor，并将一阶(即欧几里得范数)方法与ACKTR(由高斯-牛顿定义的范数)做critic优化的方法进行对比。图5(a)和(b)显示连续控制任务HalfCheetah和Atari游戏Breakout的结果。我们发现不管我们使用哪个优化critic，应用ACKTR到actor相比基准A2C都有改进。然而，使用高斯-牛顿范数优化critic在抽样效率和训练结束的计算奖励上带来的改进更大幅。另外，高斯-牛顿范数也帮助稳定训练，如用欧几里得范数不同随机种子的结果我们观察到更大的方差。  
 
-![](/assets/Scalable_Trust_Region_Method_for_Deep_Reinforcement_Learning_using_Kronecker_Fractored_Approximation/Table_2.png)
+![](/assets/Scalable_Trust_Region_Method_for_Deep_Reinforcement_Learning_using_Kronecker_Factored_Approximation/Table_2.png)
 表2. ACKTR, A2C和TRPO的结果，显示30,000,000时间步内达到的最高10计算轮平均奖励，在8个随机种子中3个表现最好的种子的平均。计算轮N为从$N^{th}$到$(N+10)^{th}轮游戏的平均计算轮奖励超过一个特定阈值的最小的N。除InvertedPendulum和InvertedDoublePendulum之外所有环境的阈值选择根据Gu等人的文献[8]，括号中我们展示的奖励临界值需要根据OpenAI Gym求解环境。
 
 　　记得critic的Fisher矩阵使用critic的输出分布构造，方差$\sigma$的高斯分布。在平凡高斯-牛顿中，$\sigma$设为1。我们实验使用Bellman误差的方差评估$\sigma$，类似在回归分析中评估噪音的方差。我们称这种方法为自适应高斯-牛顿。然而，我们发现自适应高斯-牛顿相对平凡高斯-牛顿不提供任何显著改进。(见附件D $\sigma$选择的细节比较)  
