@@ -41,12 +41,13 @@ author: CQ
 
 　　我们考虑标准强化学习形式，包含一个agent与环境交互作用。为简化解释，我们假设环境可以全面观察。环境被一盒状态集合$S$，一个动作集合$A$，一个初始状态分布$P(s_0)$，一个奖励函数$r:S \times A \rightarrow R$，状态转移概率$p(s_{t+1} \mid s_t,a_t)$和折扣因子$\gamma \in [0,1]$描述。  
 
-　　一个精确策略是状态到动作的映射 $\pi : S \rightarrow A$。每个计算轮开始于抽样一个初始状态$s_0$。在每个时间步t，agent基于当前状态产生一个动作：$a_t=\pi(s_t)$。然后得到奖励$r_t=r(s_t,a_t)$，环境的新状态从分布$p(\cdot \mid s_t,a_t)$中抽样获得。将来奖励折减求和称为回报：$R_t=\sum{\gamma^{i-t}r_i}$。agent的目标是最大化回报期望$E_{s_0}[R_0 \mid s_0]$。Q函数或者动作值函数定位为$Q^{\pi}(s_t,a_t)=E[R_t \mid s_t,a_t]$。  
+　　一个精确策略是状态到动作的映射 $\pi : S \rightarrow A$。每个计算轮开始于抽样一个初始状态$s_0$。在每个时间步t，agent基于当前状态产生一个动作：$a_t=\pi(s_t)$。然后得到奖励$r_t=r(s_t,a_t)$，环境的新状态从分布$p(\cdot \mid s_t,a_t)$中抽样获得。将来奖励折减求和称为回报：$R_t=\sum_{i=t}^{\infty}{\gamma^{i-t}r_i}$。agent的目标是最大化回报期望$E_{s_0}[R_0 \mid s_0]$。Q函数或者动作值函数定位为$Q^{\pi}(s_t,a_t)=E[R_t \mid s_t,a_t]$。  
 
-　　令$\pi^*$表示最佳策略，即任何策略$\pi^*$使得$Q^{\pi^*} \geq Q^{\pi}(s,a)$，对每个$s \in S$,$ a \in A$及任意策略$\pi$。所有最优策略有相同的Q函数，称为最优Q函数，表示为Q*。很容易显示，它满足如下的Bellman方程  
+　　令$\pi*$表示最佳策略，即任何策略$\pi*$使得$Q^{\pi*} \geq Q^{\pi}(s,a)$，对每个$s \in S$,$ a \in A$及任意策略$\pi$。  
+所有最优策略有相同的Q函数，称为最优Q函数，表示为Q*。很容易显示，它满足如下的Bellman方程  
 
 $$
-Q^*(s,a)=E_{s'~p(\cdot \mid s,a)}[r(s,a)+\gamma \max Q^*(s',a')]
+Q^*(s,a)=E_{s'~p(\cdot \mid s,a)}[r(s,a)+\gamma \displaystyle \max_{a' \in A} Q^*(s',a')]
 $$
 
 ### 2.2 Deep Q-Networks(DQN)
@@ -63,7 +64,7 @@ $$
 
 　　计算轮使用行为策略生成，一个噪声版本的目标策略，如$\pi_b(s) = \pi(s) + N(0,1)$。critic以DQN中Q函数类似的方式进行训练，但目标$y_t$使用actor输出的动作进行计算，如  
 
-$$ y_t=r_t+\gammaQ(s_{t+1),\pi(s_{t+1})) $$  
+$$ y_t=r_t+ \gamma Q(s_{t+1},\pi(s_{t+1})) $$  
 
 sactor以mini-batch梯度下降进行训练，损失函数$L_a=-E_sQ(s,\pi(s))$，s从回放缓存中抽样。La对actor参数的梯度可以通过反向传播critic和actor联合的网络进行计算。  
 
@@ -155,9 +156,9 @@ sactor以mini-batch梯度下降进行训练，损失函数$L_a=-E_sQ(s,\pi(s))$�
 
 ### 4.4 HER与奖励修正如何相互作用？
 
-　　至此我们只考虑形如$r(s,a,g)=-[ \mid {g-s_{object} \mid > \epsilon]$的二值奖励。  
+　　至此我们只考虑形如$r(s,a,g)=-[ \mid g-s_{object} \mid > \epsilon]$的二值奖励。  
 本节中，我们检查如果将这个奖励替换为一个修正奖励，是否有HER的DDPG性能如何变化。  
-我们考虑奖励形式$r(s,a,g)=\lamda \mid g-s_{object} \mid ^p - \mid g-s'_{object} \mid ^p$，此处s'为在状态s中执行动作a之后的环境状态，$ \lamda \in \{ 0,1 \}$, $p \in \{ 1,2 \}$是超参数。  
+我们考虑奖励形式$r(s,a,g)=\lambda \mid g-s_{object} \mid ^p - \mid g-s'_{object} \mid ^p$，此处s'为在状态s中执行动作a之后的环境状态，$ \lambda \in \lbrace 0,1 \rbrace$, $p \in \lbrace 1,2 \rbrace$是超参数。  
 
 　　图5显示结果。神奇的是DDPG和DDPG+HER都没能成功解决任何任务，在任何这种奖励函数下。成功的将强化学习应用到困难的不使用示范的操作任务中，通常需要更复杂的比我们尝试的更复杂的奖励函数，我们的结果与其一致。  
 
