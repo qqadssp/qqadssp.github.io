@@ -43,8 +43,8 @@ author: CQ
 
 　　一个精确策略是状态到动作的映射 $\pi : S \rightarrow A$。每个计算轮开始于抽样一个初始状态$s_0$。在每个时间步t，agent基于当前状态产生一个动作：$a_t=\pi(s_t)$。然后得到奖励$r_t=r(s_t,a_t)$，环境的新状态从分布$p(\cdot \mid s_t,a_t)$中抽样获得。将来奖励折减求和称为回报：$R_t=\sum_{i=t}^{\infty}{\gamma^{i-t}r_i}$。agent的目标是最大化回报期望$E_{s_0}[R_0 \mid s_0]$。Q函数或者动作值函数定位为$Q^{\pi}(s_t,a_t)=E[R_t \mid s_t,a_t]$。  
 
-　　1令$\pi^*$表示最佳策略，即任何策略$\pi$使得$Q^{\pi} \geq Q^{\pi}(s,a)$，对每个$s \in S$,$ a \in A$及任意策略$\pi$。  
-所有最优策略有相同的Q函数，称为最优Q函数，表示为Q。很容易显示，它满足如下的Bellman方程  
+　　令$\pi^*$表示最佳策略，即任何策略$\pi^*$使得$Q^{\pi} \geq Q^{\pi}(s,a)$，对每个$s \in S$,$ a \in A$及任意策略$\pi$。  
+所有最优策略有相同的Q函数，称为最优Q函数，表示为Q*。很容易显示，它满足如下的Bellman方程  
 
 $$
 Q^*(s,a)=E_{s'~p(\cdot \mid s,a)}[r(s,a)+\gamma \displaystyle \max_{a' \in A} Q^*(s',a')]
