@@ -44,14 +44,14 @@ author: CQ
 
 ## 3.背景
 
-　　**强化学习**。一个离散时间有限Markov决策过程(MDP)，$T$，被定义为元组$(S, A, p, p_0, r, H)$。此处，$S$是状态集合，$A$是动作空间，$p(s_{t+1} \mid s_t,a_t)$转换分布，$p_0$表示初始状态分布，$r:S \times A \rightarrow R$是奖励函数，以及$H$时间范围。为符号记法简洁，我们在随后文中省略折扣因子$\gamma$。而是通过以$r(s_t,a_t):=\gamma^tr(s_t,a_t)$替代奖励而引入它。我们定义回报$R(\tau)$为轨迹$\tau:=(s_0,a_0,...,s_{H-1},a_{H-1},s_H)$奖励的和。强化学习的目标是找到策略$\pi(a \mid s)$最大化回报期望$E_{\tau \sim P_\tau(\tau \mid \pi)}[R(\tau)]$。  
+　　**强化学习**。一个离散时间有限Markov决策过程(MDP)，$T$，被定义为元组$(S, A, p, p_0, r, H)$。此处，$S$是状态集合，$A$是动作空间，$p(s_{t+1} \mid s_t,a_t)$为转换分布，$p_0$表示初始状态分布，$r:S \times A \rightarrow R$是奖励函数，以及$H$时间范围。为符号记法简洁，我们在随后文中省略折扣因子$\gamma$。而是通过以$r(s_t,a_t):=\gamma^tr(s_t,a_t)$替代奖励而引入它。我们定义回报$R(\tau)$为轨迹$\tau:=(s_0,a_0,...,s_{H-1},a_{H-1},s_H)$奖励的和。强化学习的目标是找到策略$\pi(a \mid s)$最大化回报期望$E_{\tau \sim P_T(\tau \mid \pi)}[R(\tau)]$。  
 
 　　**元强化学习**更进了一步，目的是学习一个学习算法，有能力对任务分布$\rho(T)$中抽样的任务$T$快速学习最优策略。每个任务$T$对应不同的MDP。典型的，其假设任务分布共享相同的动作和状态空间，但也许在奖励函数或动态上有所不同。  
 
 　　**基于梯度的元学习**目的是学习一个策略$\pi$的参数$\theta$，在给定任务上执行一步或几步平凡策略梯度获得这个任务的最优策略，以此解决这个问题。这种元学习形式，也名为MAML，首次由Finn等人引入。我们将其作为参照形式$I$，可以表示为最大化目标  
 
 $$
-J^I(\theta) = E_{T \tilde \rho(T)}[E_{\tau' \sim P_T(\tau' \mid \theta')}[R(\tau')]] \qquad \theta':=U(\theta, T)=\theta+\alpha \nabla_\theta E_{\tau \sim P_T(\tau \mid \theta)}[R(\tau)]
+J^I(\theta) = E_{T \sim \rho(T)}[E_{\tau' \sim P_T(\tau' \mid \theta')}[R(\tau')]], \quad \theta':=U(\theta, T)=\theta+\alpha \nabla_\theta E_{\tau \sim P_T(\tau \mid \theta)}[R(\tau)]
 $$
 
 式中$U$表示更新函数，依赖于任务$T$，向最大化$T$中的策略性能执行一步VPG。为简明扼要，我们假设单一策略梯度适应步。尽管如此，所有展示的概念能容易的扩展到多适应步。  
@@ -59,37 +59,36 @@ $$
 　　后续工作提出了一个基于梯度元强化学习的轻微不同形式，名为E-MAML，试图规避MAML中元梯度评估的争议：  
 
 $$
-J^{II}(\theta) = E_{T \sim \rho(T)}[E_{\begin{matrix} \tau^{1:N} \sim P_T(\tau^{1:N} \mid \theta) \\ \tau' \sim P_T(\tau' \mid \theta') \\ \end{matrix}}[R(\tau')]] \\
-\theta' := U(\theta, \tau^{1:N}) = \theta + \alpha \nabla_\theta \sum_{n-1}^N [R(\tau^{(n)})]
+J^{II}(\theta) = E_{T \sim \rho(T)}[E_{\begin{matrix} \tau^{1:N} \sim P_T(\tau^{1:N} \mid \theta) \\ \tau' \sim P_T(\tau' \mid \theta') \\ \end{matrix}}[R(\tau')]], \quad  \theta' := U(\theta, \tau^{1:N}) = \theta + \alpha \nabla_\theta \sum_{n-1}^N [R(\tau^{(n)})]
 $$
 
-　　形式$II$将$U$视为依赖从一个特定任务中N次抽样轨迹的确定函数。与形式I相对，更新前轨迹$\tau$的期望在更新函数外应用。本文中我们将$\pi_\theta$记为更新前策略，$\pi_\theta'$记为更新后策略。  
+　　形式$II$将$U$视为依赖从一个特定任务中$N$次抽样轨迹的确定函数。与形式$I$相对，更新前轨迹$\tau$的期望在更新函数外应用。本文中我们将$\pi_\theta$记为更新前策略，$\pi_\theta'$记为更新后策略。  
 
 ## 4. 抽样分布信用指定
 
-　　本节分析了第3节引入的两个基于梯度元强化学习形式。图1显示了两种形式的随机计算图。红色箭头描述了对于更新前抽样分布P(\tau \mid \theta)的信用分配是如何传播的。形式I(左)通过更新步传播信用指定，因此利用全部问题结构。相反，形式II(右)忽略内部结构，直接从更新后回报$R'$到更新前策略$\pi_\theta$指定信用，这导致噪音更多，信用指定更低效。  
+　　本节分析了第3节引入的两个基于梯度元强化学习形式。图1显示了两种形式的随机计算图。红色箭头描述了对于更新前抽样分布$P(\tau \mid \theta)$的信用分配是如何传播的。形式$I$(左)通过更新步传播信用指定，因此利用全部问题结构。相反，形式$II$(右)忽略内部结构，直接从更新后回报$R'$到更新前策略$\pi_\theta$指定信用，这导致噪音更多，信用分配更低效。  
 
 ![](/assets/ProMP_Proximal_Meta_Policy_Search/Figure_1.png)  
 图1. 元学习形式$I$和形式$II$的随机计算图。红色箭头示意通过$\nabla_\theta J_{pre}$的从更新后回报$R'$到更新前策略$\pi_\theta$的信用分配。(精确节点：方块；随机节点：圆)  
 
-　　两个形式优化同一目标，在第$0^{th}$阶等效。然而，由于他们形式和随机计算图的不同，他们的梯度和优化步结果也不同。接下来，我们通过分析两种形式的梯度，指明形式II如何以及在哪儿丢失信号，梯度可以写为  
+　　两个形式优化同一目标，在第$0^{th}$阶等效。然而，由于他们形式和随机计算图的不同，他们的梯度和优化步结果也不同。接下来，我们通过分析两种形式的梯度，指明形式$II$如何以及在哪儿丢失信号，梯度可以写为  
 
 
 $$
-\nabla_\theta J(\theta) = E_{T \sim \rho(T)}[E_{\begin{matrix} \tau \sim P_T(\tau \mid \theta)\\ \tau' \sim \mid P_T(\tau' \mid \theta')\\ \end{matrix}}[\nabla_\theta J_{post}(\tau,\tau') + \nabla_\theta J_{pre}(\tau,\tau')]]
+\nabla_\theta J(\theta) = E_{T \sim \rho(T)}[E_{\begin{matrix} \tau \sim P_T(\tau \mid \theta)\\ \tau' \sim P_T(\tau' \mid \theta')\\ \end{matrix}}[\nabla_\theta J_{post}(\tau,\tau') + \nabla_\theta J_{pre}(\tau,\tau')]]
 $$
 
 　　第一项$\nabla_\theta J_{post}(\tau, \tau')$在两个形式中相等，但第二项，$\nabla_\theta J_{pre}(\tau, \tau')$，两者不同。特别的，他们对应于  
 
 $$
-\nabla_\theta J_{post}(\tau, \tau') = (I + \alpha R(\tau) \nabla_\theta ^2 log \pi_{\theta'}(\tau)) \nabla_{\theta'} log \pi_\theta (\tau') R(\tau') \\
+\nabla_\theta J_{post}(\tau, \tau') = \underbrace{(I + \alpha R(\tau) \nabla_\theta ^2 log \pi_{\theta'}(\tau))}_{transformation from \theta' to \theta} \underbrace{\nabla_{\theta'} log \pi_\theta (\tau') R(\tau')}_{\nabla_{\theta'} J^{outer}} \\
 \nabla_\theta J_{pre}^{II} = \alpha \nabla_\theta log \pi_\theta (\tau) R(\tau') \\
-\nabla_\theta J_{pre}^{I} = \alpha \nabla_\theta log \pi_\theta(\tau) ((\nabla_\theta log \pi_\theta(\tau)R(\tau))^T (\nabla_{\theta'} log \pi_{\theta'} (\tau') R(\tau')))
+\nabla_\theta J_{pre}^{I} = \alpha \nabla_\theta log \pi_\theta(\tau) (\underbrace{(\nabla_\theta log \pi_\theta(\tau)R(\tau))^T}_{\nabla_\theta J^{inner}} \underbrace{(\nabla_{\theta'} log \pi_{\theta'} (\tau') R(\tau'))}_{\nabla_{\theta'} J^{outer}})
 $$
 
 $\nabla_\theta J_{post}(\tau, \tau')$简单的对应于关于$\theta'$的更新后策略$\pi_{\theta'}$的策略梯度步，后跟一个从更新后到更新前参数的线性变换。它对应于增加导致更高回报的轨迹$\tau'$的似然性。然而，这一项对更新前抽样分布并没有优化，即哪个轨迹$\tau$导致更好的适应步。  
 
-　　关于更新前抽样分布的信用分配由第二项产生。在形式II中，$\nabla_\theta J_{pre}^{II}$可被视为以$R(\tau')$作为奖励信号的$\pi_\theta$上的标准强化学习，将更新函数U处理为未知系统的一部分。这将更新前抽样分布移动到更好的适应步。  
+　　关于更新前抽样分布的信用分配由第二项产生。在形式$II$中，$\nabla_\theta J_{pre}^{II}$可被视为以$R(\tau')$作为奖励信号的$\pi_\theta$上的标准强化学习，将更新函数$U$处理为未知系统的一部分。这将更新前抽样分布移动到更好的适应步。  
 
 　　形式$I$计入$P_T(\tau' \mid \theta')$依赖于$P_T(\tau \mid \theta)$的因果关系。它通过最大化更新前和更新后策略梯度的内积来做这件事情。这驱使更新前策略向1)更大更新后回报，2)更大适应步$\alpha \nabla_\theta J^{inner}$，3)更好的更新前后策略梯度校准。当综合时，这些效果直接对适应进行优化。结果是，我们期望第一个元策略梯度形式，$J^I$，产生优秀的学习性质。  
 
@@ -124,16 +123,16 @@ $$
 　　这个问题可以使用DiCE形式进行解决，允许计算任意随机计算图的无偏高阶Monte-Carlos评估。DiCE-强化学习目标可以重写为  
 
 $$
-J^{DiCE}(\tau) = \sum_{t=0}^{H-1}(\prod_{t'=0}^t \frac{\pi_\theta(a_{t'} \mid s_{t'})}{\bot (\pi_\theta (a_{t'} \mid s_{t'}))}) r(s_t,a_t) \quad \tau ~ P_T(\tau) \\
-E{\tau \sim P_T(\tau \mid \theta)}[\nabla_\theta^2 J^{DiCE}(\tau)] = H_1 + H_2 + H_{12} + H_{12}^T
+J^{DiCE}(\tau) = \sum_{t=0}^{H-1}(\prod_{t'=0}^t \frac{\pi_\theta(a_{t'} \mid s_{t'})}{\bot (\pi_\theta (a_{t'} \mid s_{t'}))}) r(s_t,a_t) \quad \tau \sim P_T(\tau) \\
+E_{\tau \sim P_T(\tau \mid \theta)}[\nabla_\theta^2 J^{DiCE}(\tau)] = H_1 + H_2 + H_{12} + H_{12}^T
 $$
 
-式中，$\bot$表示‘停止梯度’算子，即$\bot (f_\theta(x)) \rightarrow f_\theta(x)$，但是$\nabla (f_theta(x)) \rightarrow 0$。通过式7的重要性权重得到表现的轨迹上$\pi_\theta(a_t \mid s_t)$的序列依赖，导致hessian矩阵$\nabla_\theta^2 E{\tau \sim P_T(\tau \mid \theta)}[R(\tau)]$的高方差评估。如Furmston等人所写，$H_{12}$尤其难以估计，由于它涉及延轨迹的三个嵌套求和。在7.2中我们基于经验的展示，DiCE目标的高方差评估导致嘈杂的元策略梯度以及低廉的学习性能。  
+式中，$\bot$表示‘停止梯度’算子，即$\bot (f_\theta(x)) \rightarrow f_\theta(x)$，但是$\nabla (f_\theta(x)) \rightarrow 0$。通过式7的重要性权重得到表现的轨迹上$\pi_\theta(a_t \mid s_t)$的序列依赖，导致hessian矩阵$\nabla_\theta^2 E_{\tau \sim P_T(\tau \mid \theta)}[R(\tau)]$的高方差评估。如Furmston等人所写，$H_{12}$尤其难以估计，由于它涉及延轨迹的三个嵌套求和。在7.2中我们基于经验的展示，DiCE目标的高方差评估导致嘈杂的元策略梯度以及低廉的学习性能。  
 
-　　为了促进抽样高效的元学习，我们引入高方差曲率评估  
+　　为了促进抽样高效的元学习，我们引入低方差曲率评估  
 
 $$
-J^{LVC}(\tau)=\sum_{t=0}^{H-1} \frac{\pi_\theta(a_t \mid s_t)}{\bot (\pi_\theta(a_t \mid s_t))}(\sum_{t'=t}^{H-1}r(s_{t'},a_{t'})) \quad \tau \tilde P_T(\tau) \\
+J^{LVC}(\tau)=\sum_{t=0}^{H-1} \frac{\pi_\theta(a_t \mid s_t)}{\bot (\pi_\theta(a_t \mid s_t))}(\sum_{t'=t}^{H-1}r(s_{t'},a_{t'})) \quad \tau \sim P_T(\tau) \\
 E_{\tau \sim P_T(\tau \mid \theta)}[\nabla_\theta^2 J^{LVC}(\tau)] = H_1 + H_2
 $$
 
@@ -152,7 +151,7 @@ $$
 　　最近引入的PPO算法达到与TRPO相似的结果且有一阶方法的优势。PPO使用伪修剪目标，允许安全的处理多梯度步而不需要重抽样轨迹。  
 
 $$
-J_T^{CLIP}(\theta) = E_{\tau \sim P_T(\tau, \theta_o)}[\sum_{t=0}^{H-1}(\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_o}(a_t \mid s_t)}A^{\pi_{\theta_o}}(s_t, a_t), clip_{1-\epsilon}^{1+\epsilon}(\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_o}(a_t \mid s_t)})A^{\pi_{\theta_o}}(s_t,a_t))]
+J_T^{CLIP}(\theta) = E_{\tau \sim P_T(\tau, \theta_o)}[\sum_{t=0}^{H-1} \min (\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_o}(a_t \mid s_t)}A^{\pi_{\theta_o}}(s_t, a_t), clip_{1-\epsilon}^{1+\epsilon}(\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_o}(a_t \mid s_t)})A^{\pi_{\theta_o}}(s_t,a_t))]
 $$
 
 ![](/assets/ProMP_Proximal_Meta_Policy_Search/Algorithm_1.png)
