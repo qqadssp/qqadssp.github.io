@@ -81,7 +81,7 @@ $$
 　　第一项$\nabla_\theta J_{post}(\tau, \tau')$在两个形式中相等，但第二项，$\nabla_\theta J_{pre}(\tau, \tau')$，两者不同。特别的，他们对应于  
 
 $$
-\nabla_\theta J_{post}(\tau, \tau') = \underbrace{(I + \alpha R(\tau) \nabla_\theta ^2 log \pi_{\theta'}(\tau))}_{transformation from \theta' to \theta} \underbrace{\nabla_{\theta'} log \pi_\theta (\tau') R(\tau')}_{\nabla_{\theta'} J^{outer}} \\
+\nabla_\theta J_{post}(\tau, \tau') = \underbrace{(I + \alpha R(\tau) \nabla_\theta ^2 log \pi_{\theta'}(\tau))}_{transformation \quad from \quad \theta' \quad to \quad \theta} \underbrace{\nabla_{\theta'} log \pi_\theta (\tau') R(\tau')}_{\nabla_{\theta'} J^{outer}} \\
 \nabla_\theta J_{pre}^{II} = \alpha \nabla_\theta log \pi_\theta (\tau) R(\tau') \\
 \nabla_\theta J_{pre}^{I} = \alpha \nabla_\theta log \pi_\theta(\tau) (\underbrace{(\nabla_\theta log \pi_\theta(\tau)R(\tau))^T}_{\nabla_\theta J^{inner}} \underbrace{(\nabla_{\theta'} log \pi_{\theta'} (\tau') R(\tau'))}_{\nabla_{\theta'} J^{outer}})
 $$
