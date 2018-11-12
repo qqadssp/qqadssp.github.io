@@ -44,14 +44,14 @@ author: CQ
 
 ## 3.背景
 
-　　**强化学习**。一个离散时间有限Markov决策过程(MDP)，$T$，被定义为元组$(S, A, p, p_0, r, H)$。此处，$S$是状态集合，$A$是动作空间，$p(s_{t+1} \mid s_t,a_t)转换分布，$p_0$表示初始状态分布，$r:S \times A \rightarrow R$是奖励函数，以及$H$时间范围。为符号记法简洁，我们在随后文中省略折扣因子$\gamma$。而是通过以$r(s_t,a_t):=\gamma^tr(s_t,a_t)$替代奖励而引入它。我们定义回报$R(\tau)$为轨迹$\tau:=(s_0,a_0,...,s_{H-1},a_{H-1},s_H)$奖励的和。强化学习的目标是找到策略$\pi(a \mid s)$最大化回报期望$E_{\tau ~ P_\tau(\tau \mid \pi)}[R(\tau)]$。  
+　　**强化学习**。一个离散时间有限Markov决策过程(MDP)，$T$，被定义为元组$(S, A, p, p_0, r, H)$。此处，$S$是状态集合，$A$是动作空间，$p(s_{t+1} \mid s_t,a_t)$转换分布，$p_0$表示初始状态分布，$r:S \times A \rightarrow R$是奖励函数，以及$H$时间范围。为符号记法简洁，我们在随后文中省略折扣因子$\gamma$。而是通过以$r(s_t,a_t):=\gamma^tr(s_t,a_t)$替代奖励而引入它。我们定义回报$R(\tau)$为轨迹$\tau:=(s_0,a_0,...,s_{H-1},a_{H-1},s_H)$奖励的和。强化学习的目标是找到策略$\pi(a \mid s)$最大化回报期望$E_{\tau ~ P_\tau(\tau \mid \pi)}[R(\tau)]$。  
 
 　　**元强化学习**更进了一步，目的是学习一个学习算法，有能力对任务分布$\rho(T)$中抽样的任务$T$快速学习最优策略。每个任务$T$对应不同的MDP。典型的，其假设任务分布共享相同的动作和状态空间，但也许在奖励函数或动态上有所不同。  
 
 　　**基于梯度的元学习**目的是学习一个策略$\pi$的参数$\theta$，在给定任务上执行一步或几步平凡策略梯度获得这个任务的最优策略，以此解决这个问题。这种元学习形式，也名为MAML，首次由Finn等人引入。我们将其作为参照形式$I$，可以表示为最大化目标  
 
 $$
-J^I(\theta) = E_{T ~ \rho(T)}[E_{\tau' ~ P_T(\tau' \mid \theta')}[R(\tau')]]  \theta':=U(\theta, T)=\theta+\alpha \nabla_\theta E_{\tau ~ P_T(\tau \mid \theta)}[R(\tau)]
+J^I(\theta) = E_{T \tilde \rho(T)}[E_{\tau' ~ P_T(\tau' \mid \theta')}[R(\tau')]] \qquad \theta':=U(\theta, T)=\theta+\alpha \nabla_\theta E_{\tau \tilde P_T(\tau \mid \theta)}[R(\tau)]
 $$
 
 式中$U$表示更新函数，依赖于任务$T$，向最大化$T$中的策略性能执行一步VPG。为简明扼要，我们假设单一策略梯度适应步。尽管如此，所有展示的概念能容易的扩展到多适应步。  
@@ -63,13 +63,13 @@ J^{II}(\theta) = E_{T ~ \rho(T)}[E_{\begin{matrix} \tau^{1:N} ~ P_T(\tau^{1:N} \
 \theta' := U(\theta, \tau^{1:N}) = \theta + \alpha \nabla_\theta \sum_{n-1}^N [R(\tau^{(n)})]
 $$
 
-　　形式$II$将$U$视为依赖从一个特定任务中N次抽样轨迹的确定函数。与形式I相对，更新前轨迹$\tau$的期望在更新函数外应用。本文中我们将$\pi_\theta$记为更新前策略，$\pi_theta'$记为更新后策略。  
+　　形式$II$将$U$视为依赖从一个特定任务中N次抽样轨迹的确定函数。与形式I相对，更新前轨迹$\tau$的期望在更新函数外应用。本文中我们将$\pi_\theta$记为更新前策略，$\pi_\theta'$记为更新后策略。  
 
 ## 4. 抽样分布信用指定
 
 　　本节分析了第3节引入的两个基于梯度元强化学习形式。图1显示了两种形式的随机计算图。红色箭头描述了对于更新前抽样分布P(\tau \mid \theta)的信用分配是如何传播的。形式I(左)通过更新步传播信用指定，因此利用全部问题结构。相反，形式II(右)忽略内部结构，直接从更新后回报$R'$到更新前策略$\pi_\theta$指定信用，这导致噪音更多，信用指定更低效。  
 
-![](assets/ProMP_Proximal_Meta_Policy_Search/Figure_1.png)  
+![](/assets/ProMP_Proximal_Meta_Policy_Search/Figure_1.png)  
 图1. 元学习形式$I$和形式$II$的随机计算图。红色箭头示意通过$\nabla_\theta J_{pre}$的从更新后回报$R'$到更新前策略$\pi_\theta$的信用分配。(精确节点：方块；随机节点：圆)  
 
 　　两个形式优化同一目标，在第$0^{th}$阶等效。然而，由于他们形式和随机计算图的不同，他们的梯度和优化步结果也不同。接下来，我们通过分析两种形式的梯度，指明形式II如何以及在哪儿丢失信号，梯度可以写为  
@@ -79,10 +79,10 @@ $$
 \nabla_\theta J(\theta) = E_{T ~ \rho(T)}[E_{\begin{matrix} \tau ~ P_T(\tau \mid \theta)\\ \tau' ~ \mid P_T(\tau' \mid \theta')\\ \end{matrix}}[\nabla_\theta J_{post}(\tau,\tau') + \nabla_\theta J_{pre}(\tau,\tau')]]
 $$
 
-　　第一项$\nabla_\theta J_{post}(\tau, \tau')在两个形式中相等，但第二项，$\nabla_\theta J_{pre}(\tau, \tau')，两者不同。特别的，他们对应于  
+　　第一项$\nabla_\theta J_{post}(\tau, \tau')$在两个形式中相等，但第二项，$\nabla_\theta J_{pre}(\tau, \tau')$，两者不同。特别的，他们对应于  
 
 $$
-\nabla_\theta J_{post}(\tau, \tau') = (I + \alpha R(\tau) \nabla_\theta ^2 log \pi_{\theta'}(\tau)) \nabla_{\theta'} log \pi_theta (\tau') R(\tau') \\
+\nabla_\theta J_{post}(\tau, \tau') = (I + \alpha R(\tau) \nabla_\theta ^2 log \pi_{\theta'}(\tau)) \nabla_{\theta'} log \pi_\theta (\tau') R(\tau') \\
 \nabla_\theta J_{pre}^{II} = \alpha \nabla_\theta log \pi_\theta (\tau) R(\tau') \\
 \nabla_\theta J_{pre}^{I} = \alpha \nabla_\theta log \pi_\theta(\tau) ((\nabla_\theta log \pi_\theta(\tau)R(\tau))^T (\nabla_{\theta'} log \pi_{\theta'} (\tau') R(\tau')))
 $$
@@ -112,9 +112,9 @@ $$
 此处  
 
 $$
-H_1 = E{\tau ~ P_T(\tau \mid \theta)}[\sum_{t=0}^{H-1} \nabla_\theta log \pi_\theta (a_t,s_t) \nabla_\theta log \pi_\theta (a_t, s_t)^T (\sum_{t'=t}^{H-1}r(s_{t'},a_{t'}))] \\
-H_2 = E{\tau ~ P_T(\tau \mid \theta)}[\sum_{t=0}^{H-1} \nabla_\theta ^2 log \pi_\theta (a_t,s_t)(\sum_{t'=t}^{H-1}r(s_{t'},a_{t'}))] \\
-H_{12} = E{\tau ~ P_T(\tau \mid \theta)}[\sum_{t=0}^{H-1} \nabla_\theta log \pi_\theta (a_t,s_t) \nabla_\theta Q_t^{\pi_\theta}(s_t,a_t)^T]
+H_1 = E_{\tau ~ P_T(\tau \mid \theta)}[\sum_{t=0}^{H-1} \nabla_\theta log \pi_\theta (a_t,s_t) \nabla_\theta log \pi_\theta (a_t, s_t)^T (\sum_{t'=t}^{H-1}r(s_{t'},a_{t'}))] \\
+H_2 = E_{\tau ~ P_T(\tau \mid \theta)}[\sum_{t=0}^{H-1} \nabla_\theta ^2 log \pi_\theta (a_t,s_t)(\sum_{t'=t}^{H-1}r(s_{t'},a_{t'}))] \\
+H_{12} = E_{\tau ~ P_T(\tau \mid \theta)}[\sum_{t=0}^{H-1} \nabla_\theta log \pi_\theta (a_t,s_t) \nabla_\theta Q_t^{\pi_\theta}(s_t,a_t)^T]
 $$
 
 此处$Q_t^{\pi_\theta}(s_t, a_t)=E_{\tau^{t+1:H-1} ~ P_T(\cdot \mid \theta)}[\sum_{t'=t}^{H-1} r(s_{t'}, a_{t'}) \mid s_t, a_t]$表示在时间$t$策略$\pi_\theta$下状态-动作值函数的期望。  
@@ -133,18 +133,18 @@ $$
 　　为了促进抽样高效的元学习，我们引入高方差曲率评估  
 
 $$
-J^{LVC}(\tau)=\sum_{t=0}^{H-1} \frac{\pi_\theta(a_t \mid s_t)}{\bot (\pi_\theta(a_t \mid s_t))}(\sum_{t'=t}^{H-1}r(s_{t'},a_{t'})) \quad \tau ~ P_T(\tau) \\
-E{\tau ~ P_T(\tau \mid \theta)}[\nabla_\theta^2 J^{LVC}(\tau)] = H_1 + H_2
+J^{LVC}(\tau)=\sum_{t=0}^{H-1} \frac{\pi_\theta(a_t \mid s_t)}{\bot (\pi_\theta(a_t \mid s_t))}(\sum_{t'=t}^{H-1}r(s_{t'},a_{t'})) \quad \tau \tilde P_T(\tau) \\
+E_{\tau ~ P_T(\tau \mid \theta)}[\nabla_\theta^2 J^{LVC}(\tau)] = H_1 + H_2
 $$
 
-　　通过移除轨迹上$\pi_\theta (a_t \mid s_t)$的序列依赖，hessian矩阵评估忽略了$H_{12}+H_{12}^T$项，这导致方差缩减，但使得估计有偏置。选择这个目标是受Furmston等人的启发：在特定情况下，$H_{12}+H_{12}^T$项在局部最优$\theta \ast$附近消失，即当$\theta \rightarrow \theta \ast$时，$E_\tau [\nabla_\theta^2 J^{LVC}] \rightarrow E_\tau [\nabla_\theta^2 J^{DiCE}]$。因此，LVC评估的偏置在接近局部最优时变得可忽略。7.2节的实验支持这个理论发现，相比于$J^{DiCE}$，通过$J^{LVC}$得到的低方差hessian矩阵评估以显著的差距改进了元学习的抽样效率。有兴趣的读者可以参考附录B的推导和更细节的讨论。
+　　通过移除轨迹上$\pi_\theta (a_t \mid s_t)$的序列依赖，hessian矩阵评估忽略了$H_{12}+H_{12}^T$项，这导致方差缩减，但使得估计有偏置。选择这个目标是受Furmston等人的启发：在特定情况下，$H_{12}+H_{12}^T$项在局部最优$\theta^\ast$附近消失，即当$\theta \rightarrow \theta^\ast$时，$E_\tau [\nabla_\theta^2 J^{LVC}] \rightarrow E_\tau [\nabla_\theta^2 J^{DiCE}]$。因此，LVC评估的偏置在接近局部最优时变得可忽略。7.2节的实验支持这个理论发现，相比于$J^{DiCE}$，通过$J^{LVC}$得到的低方差hessian矩阵评估以显著的差距改进了元学习的抽样效率。有兴趣的读者可以参考附录B的推导和更细节的讨论。
 
 ## 6. ProMP: Proximal Meta-Policy Search
 
 　　在前一节的基础上，我们发展了一个全新的元策略搜索方法，基于低方差曲率目标，目的是解决如下优化问题：  
 
 $$
-\under{max}_\theta E{\tau ~ P_T(\tau \mid \theta)}[E_{\tau' ~ P_T(\tau' \mid \theta')}[R(\tau')]] \quad \theta' := \theta + \alpha \nabla_\theta E_{\tau ~ P_T(\tau \mid \theta)}[J^{LVC}(\tau)]
+max_\theta E_{\tau ~ P_T(\tau \mid \theta)}[E_{\tau' ~ P_T(\tau' \mid \theta')}[R(\tau')]] \quad \theta' := \theta + \alpha \nabla_\theta E_{\tau ~ P_T(\tau \mid \theta)}[J^{LVC}(\tau)]
 $$
 
 　　之前的工作已经使用平凡策略梯度(VPG)或TRPO优化这个目标。相比VPG，TRPO依然更数据高效且稳定。然而，它需要计算Fisher信息矩阵(FIM)。评估FIM在元学习设置中特别成问题。元策略梯度已经涉及二阶导数，结果是，FIM评估的时间复杂度是策略参数数量的立方。典型的，使用有限差分方法的话问题是无解的，由于其引入更进一步的近似误差。  
@@ -155,7 +155,7 @@ $$
 J_T^{CLIP}(\theta) = E_{\tau ~ P_T(\tau, \theta_o)}[\sum_{t=0}^{H-1}(\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_o}(a_t \mid s_t)}A^{\pi_{\theta_o}}(s_t, a_t), clip_{1-\epsilon}^{1+\epsilon}(\frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_o}(a_t \mid s_t)})A^{\pi_{\theta_o}}(s_t,a_t))]
 $$
 
-![](assets/ProMP_Proximal_Meta_Policy_Search/Algorithm_1.png)
+![](/assets/ProMP_Proximal_Meta_Policy_Search/Algorithm_1.png)
 
 　　元强化学习情况中，它并不能仅仅将$J_T^{CLIP}$替换为更新后奖励目标。为了能在当前策略$\pi_{\theta_o}$的相同抽样数据上安全执行多个元梯度步，我们也需要1)计入更新前动作分布$\pi_\theta(a_t \mid s_t)$的变化，以及2)将改变限制在更新前状态可见分布范围之内。  
 
@@ -183,7 +183,7 @@ $$
 
 　　在抽样复杂度和渐近性能上，我们将我们的方法，ProMP，与其他四种基于梯度的方法进行比较：TROP-MAML，E-MAML-TROP，EMAML-VPG，和LVC-VPG，一个我们方法的简化版本，在优化步使用LVC目标并用平凡策略梯度进行元优化。这些算法在6个不同的需要适应的运动任务上进行测试：half-cheetah和walker必须在向前跑和向后跑之间切换，高维agent，ant和humanoid，必须学习适应在2D平面上跑不同的方向，hopper和walker需要适应不同自身设置。  
 
-![](assets/ProMP_Proximal_Meta_Policy_Search/Figure_2.png)  
+![](/assets/ProMP_Proximal_Meta_Policy_Search/Figure_2.png)  
 图2. 在6个不同MuJoCo环境中ProMP以及4个其他基于梯度元学习算法的元学习曲线。ProMP在所有环境中超越了之前的工作。  
 
 　　结果凸显了ProMP在抽样效率和渐近性能上的强大，如图2。它们也证明了LVC目标的正面效果：LVC-VPG，尽管用平凡策略梯度进行优化，经常能达到与之前用TRPO优化方法可以相比较的结果。当与E-MAML-VPG比较时，LVC在性能上证明了严格的优秀，支持了本文发展的理论的稳健性。额外4个环境的结果在附录4中显示，以及参数设置，环境设定和几个算法的运行时间比较。  
@@ -192,14 +192,14 @@ $$
 
 　　第5节中，我们讨论DiCE形式如何产生无偏但高方差强化学习目标hessian矩阵估计的，以及作为低方差曲率评估(LVC)的思路来源。这里我们研究了两个评估器的元梯度方差以及其在学习性能上的意义。特别的，我们报告了HalfCheeahFwdBack环境中元策略梯度的相对标准差以及整个学习过程的平均回报。结果凸显了低方差曲率估计的优势，如图3。DiCE评估器中固有的轨迹级依赖性使得其元梯度标准差平均比LVC高2倍。如学习曲线所示，在DiCE情况下，嘈杂的梯度阻碍了高效抽样的元学习。基于LVC评估器的元策略搜索导致大幅度的更好的学习性质。  
 
-![](assets/ProMP_Proximal_Meta_Policy_Search/Figure_3.png)  
+![](/assets/ProMP_Proximal_Meta_Policy_Search/Figure_3.png)  
 图3. 上方：元策略梯度的相对标准差。下方：HalfCheetahFwdBack环境中的回报。  
 
 ### 7.3 初始抽样分布比较
 
 　　这里我们在学到的更新前抽样分布上，评估不同目标的效果。我们比较结合TRPO的低方差曲率评估器(LVC-TRPO)，以及MAML和E-MAML-TRPO，在2D环境中以便探索行为可以可视化。环境中的每个任务对应于达到不同的角落位置，然而，只有当2D agent充分接近角落时才获得奖励。因此，为了成功识别任务，agent必须探索不同区域，我们在每个任务上执行3内适应步，允许agent充分改变其行为，从探索到利用。  
 
-![](assets/ProMP_Proximal_Meta_Policy_Search/Figure_4.png)  
+![](/assets/ProMP_Proximal_Meta_Policy_Search/Figure_4.png)  
 图4. 更新前策略的探索模式和不同更新函数的更新后利用。由于有有修改的信用分配，LVC目标学习了能够识别当前任务并适应其策略的更新前策略，成功到达目标。  
 
 　　不同的探索-利用流程如图4所示由于MAML实现没有分配信用到更新前抽样轨迹，它不能为任务识别学习合理的探索流程，因此没能完成任务。另一方面，E-MAML，对应于形式II，学习到探索长的但随机的路径：因为它只能分配信用到整批的更新前轨迹，没有标注哪个特别动作促进好的任务适应。作为后果，适应后的策略轻微偏移的任务指定目标。而LVC评估器学习了连贯的探索模式，观察了每个区域，使其完整的解决了任务。  
@@ -208,7 +208,7 @@ $$
 
 　　为了更多的显示形式I和形式II梯度的不同，我们在一个简单的1D环境中评估元梯度更新和相的关到两种形式最优值的收敛性。这个环境中，agent在实数轴的随机位置开始，要达到在1或-1位置的目标。为了可视化收敛性，我们只用\theta_0和\theta_1参数化策略。我们以VPG优化DiCE目标的方式使用形式I，以VPG优化E-MAML目标的方式使用形式II。  
 
-![](assets/ProMP_Proximal_Meta_Policy_Search/Figure_5.png)  
+![](/assets/ProMP_Proximal_Meta_Policy_Search/Figure_5.png)  
 图5. 在1D环境中，关于形式I和形式II的策略参数\theta_0和\theta_1的元梯度更新。  
 
 　　图5描述了两种形式的参数\theta_i的元梯度更新。形式I利用适应更新内部结构，产生更快更稳定的收敛到最优。由于其低级的信用分配，形式II产生更嘈杂的梯度估计，导致更差的收敛特性。  
