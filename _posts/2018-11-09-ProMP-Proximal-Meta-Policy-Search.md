@@ -167,7 +167,7 @@ $$
 　　这个目标的一个重要的特征是，它的关于$\theta$的导数在$\theta_o$处的估计与LVC目标关于$\theta$的导数在$\theta_o$处的估计是一致的，另外它计入更新前动作分布的变化。为满足条件2)，我们用$\pi_\theta$和$\pi_{\theta_o}$之间的KL距离惩罚项扩展了修剪元目标。这个KL惩罚项促使一个在$\pi_{\theta_o}$周围的软局部'信任区'，防止优化过程中状态可见分布的平移变大。这使我们能够执行多步元策略梯度而不用重抽样。另外，ProMP优化  
 
 $$
-J_T^{ProMP}(\theta) = J_T^{CLIP}(\theta') - \eta \overline{D} _{KL} (\pi_{\theta_o}, \pi_\theta) \quad s.t. \quad \theta' = \theta + \alpha \nabla_\theta J_T^{LR}(\theta), \quad T ~ \rho(T)
+J_T^{ProMP}(\theta) = J_T^{CLIP}(\theta') - \eta \overline{D} _{KL} (\pi_{\theta_o}, \pi_\theta) \quad s.t. \quad \theta' = \theta + \alpha \nabla_\theta J_T^{LR}(\theta), \quad T \sim \rho(T)
 $$
 
 　　ProMP巩固了本文发展而来的观点，同时最大程度利用最近发展的策略梯度算法。首先，其元学习形式利用了基于梯度元学习的整体结构。其次，它加入了强化学习目标hessian矩阵的低方差估计。第三，ProMP控制了适应前策略的统计距离和适应后策略的统计距离，促使高效且稳定的元学习。总之，ProMP在抽样复杂度，运行时间和渐近性能上，稳定超越之前基于梯度的元强化学习算法。  
