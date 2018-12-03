@@ -2,7 +2,7 @@
 layout: post
 title:  "ProMP: Proximal Meta-Policy Search"
 categories: ReinforcementLearning
-tags:  ReinforcementLearning
+tags:  ReinforcementLearning, Meta-Learning
 author: CQ
 ---
 
