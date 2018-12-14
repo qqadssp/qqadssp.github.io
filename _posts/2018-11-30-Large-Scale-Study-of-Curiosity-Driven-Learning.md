@@ -11,7 +11,7 @@ author: CQ
 
 **Intro:** ICLR 2019  
 
-**Link:** [https://openreview.net/form?id=rJNwDjAqYX](https://openreview.net/form?id=rJNeDjAqYX)  
+**Link:** [https://openreview.net/form?id=rJNwDjAqYX](https://openreview.net/forum?id=rJNeDjAqYX)  
 
 **Code:** [https://github.com/openai/large-scale-curiosity](https://github.com/openai/large-scale-curiosity)  
 
