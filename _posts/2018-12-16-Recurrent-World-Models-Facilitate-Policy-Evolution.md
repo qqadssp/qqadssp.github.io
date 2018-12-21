@@ -80,9 +80,9 @@ author: CQ
 　　尽管agent仍然能在这个设置下导航到赛道，我们注意到它左右摇晃，并且在尖角处脱离赛道，见图1(右)。这个限制的agent获得平均632+-251得分，与其他OpenAI Gym排行榜上其他agent和传统深度RL方法如A3C的性能相当。增加一个隐藏层到C的策略网络帮助其改进结果到788+-141，但不足以解决这个环境。  
 
 ![](/assets/Recurrent_World_Models_Facilitate_Policy_Evolution/Table_1.png)  
-图1. CarRacing-v0 100计算轮的结果。  
-![](/assets/Recurrent_World_Models_Facilitate_Policy_Evolution/Table_2,png)  
-图2. 不同\tau的DoomTakeCover-v0结果。  
+表1. CarRacing-v0 100计算轮的结果。  
+![](/assets/Recurrent_World_Models_Facilitate_Policy_Evolution/Table_2.png)  
+表2. 不同$\tau$的DoomTakeCover-v0结果。  
 
 　　**世界模型(有V和M)**
 　　V产生的表征$z_t$只捕获了时间上一个时刻的表征，没有很多预测能力。相反，M被训练用来做一件事，而且做的相当好，那就是预测$z_{t+1}$。由于M对$z_{t+1}$的预测是从时间$t$时RNN的隐藏状态$h_t$处产生，$h_t$是一个很好的我们能给agent的特征向量选择。综合$z_t$和$h_t$给了C一个很好的当前观测和未来将要发生事件的表征。  
