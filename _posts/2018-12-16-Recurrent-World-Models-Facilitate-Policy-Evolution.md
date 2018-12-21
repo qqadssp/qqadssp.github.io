@@ -11,11 +11,11 @@ author: CQ
 
 **Intro:** NeurlIPS 2018  
 
-**Link:** [https://arxiv.org/abs/1809.01999](https://arxiv.org/abs/1809.01999)  
-
-**Code:**  
+**Link:**  
+[https://arxiv.org/abs/1809.01999](https://arxiv.org/abs/1809.01999)  
 [https://worldmodels.github.io](https://worldmodels.github.io)  
-[https://github.com/hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiments)  
+
+**Code:** [https://github.com/hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiments)  
 
 
 
