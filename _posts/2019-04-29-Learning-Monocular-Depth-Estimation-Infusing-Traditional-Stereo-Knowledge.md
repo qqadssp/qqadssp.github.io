@@ -46,7 +46,7 @@ author: CQ
 　　最后，与我们工作相关的是单视角立体匹配(SVS)，使用Deep3D处理单一图像得到第二个组合视觉，然后使用DispNetC计算视差图。然而，这两个架构是独立训练的。更进一步，DispNetC由来自人工合成和真值域的真值标签监督训练。不同的是，我们要引入的框架不需要真值，且端到端训练，大幅超越SVS。  
 
 ![](/assets/Learning_Monocular_Depth_Estimation_Infusing_Traditional_Stereo_Knowledge/Figure_2.png)  
-图2. monoResMatch架构图示。给定一个输入图像，第一阶段中多尺度特征提取器(红色)生成高阶表征。初始视差评估器(蓝色)生成立体匹配的左右帧多尺度视差图。视差微调模块(橘色)负责依据第一阶段特征和第二阶段视差调整初始视差，匹配输入图像的高维特征Fl0和虚拟右视角合成特征FR0之间的损失，以及Fl0和反向卷曲FR0之间的绝对误差eL。  
+图2. monoResMatch架构图示。给定一个输入图像，第一阶段中多尺度特征提取器(红色)生成高阶表征。初始视差评估器(蓝色)生成立体匹配的左右帧多尺度视差图。视差微调模块(橘色)负责依据第一阶段特征和第二阶段视差调整初始视差，匹配输入图像的高维特征$F_L^0$和虚拟右视角合成特征$F_R^0$之间的损失，以及$F_L^0$和反向卷曲$F_R^0$之间的绝对误差$e_L$。  
 
 **代理标签提取**
 
@@ -83,8 +83,8 @@ $$L_{total} = \sum_{s=1}^{n_i} L_{init} + \sum_{s=1}^{nr} L_{ref}$$
 　　此处s表示输出分辨率，$n_i$和$n_r$为计算损失中考虑尺度的数量，同时$L_{init}$和$L_{ref}$形式为：  
 
 $$
-& L_{init} = \alpha_{ap}(L_{ap}^l+L_{ap}^r) + \alpha_{ds}(L_{ds}^l+L_{ds}^r) + \alpha(L_{ps}^l+L{ps}^r) \\
-& L_{ref} = \alpha_{ap} L_{ap}^l + \alpha_{ds}L_{ds}^l + \alpha_{ps}L_{ps}^l
+L_{init} = \alpha_{ap}(L_{ap}^l+L_{ap}^r) + \alpha_{ds}(L_{ds}^l+L_{ds}^r) + \alpha(L_{ps}^l+L{ps}^r) \\
+L_{ref} = \alpha_{ap} L_{ap}^l + \alpha_{ds}L_{ds}^l + \alpha_{ps}L_{ps}^l
 $$
 
 　　此处$L_{ap}$为图像重建损失，$L_{ds}$为光滑项，$L_{ps}$为代理监督损失。每一项都包含了初始视差评估器的左组件和右组件，以及微调阶段的左组件。  
