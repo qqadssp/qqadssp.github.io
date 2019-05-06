@@ -83,7 +83,7 @@ $$L_{total} = \sum_{s=1}^{n_i} L_{init} + \sum_{s=1}^{nr} L_{ref}$$
 　　此处s表示输出分辨率，$n_i$和$n_r$为计算损失中考虑尺度的数量，同时$L_{init}$和$L_{ref}$形式为：  
 
 $$
-L_{init} = \alpha_{ap}(L_{ap}^l+L_{ap}^r) + \alpha_{ds}(L_{ds}^l+L_{ds}^r) + \alpha(L_{ps}^l+L{ps}^r) \\
+L_{init} = \alpha_{ap}(L_{ap}^l+L_{ap}^r) + \alpha_{ds}(L_{ds}^l+L_{ds}^r) + \alpha(L_{ps}^l+L_{ps}^r) \\
 L_{ref} = \alpha_{ap} L_{ap}^l + \alpha_{ds}L_{ds}^l + \alpha_{ps}L_{ps}^l
 $$
 
